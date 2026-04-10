@@ -37,7 +37,7 @@ const StatCard = ({ label, value, icon: Icon, color, sub, trend }) => {
 };
 
 const Dashboard = () => {
-  const { user, isAdmin, isManager, canManagePayroll } = useAuth();
+  const { user, isAdmin, isManager, isHQ, canManagePayroll } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 

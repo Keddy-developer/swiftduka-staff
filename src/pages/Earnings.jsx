@@ -24,7 +24,7 @@ const PERIODS = (() => {
 })();
 
 const Earnings = () => {
-  const { isAdmin, canManagePayroll, user } = useAuth();
+  const { isAdmin, isHQ, canManagePayroll, user } = useAuth();
   const [earnings, setEarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

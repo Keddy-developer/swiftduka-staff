@@ -31,7 +31,7 @@ const statusBadgeClass = (s) => {
 };
 
 const Tasks = () => {
-  const { isAdmin, isManager, user } = useAuth();
+  const { isAdmin, isManager, isHQ, user } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
