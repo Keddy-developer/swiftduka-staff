@@ -244,7 +244,11 @@ const TaskTemplates = () => {
                     required
                   >
                     <option value="">Select Role</option>
-                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>
+                        {r.name.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
