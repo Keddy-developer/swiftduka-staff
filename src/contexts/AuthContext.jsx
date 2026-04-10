@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const { data } = await axiosInstance.post('/auth/login', { email, password });
+    const { data } = await axiosInstance.post('/auth/login', { email, password, portal: 'staff' });
     const { token, user: userData } = data;
     localStorage.setItem('staff_token', token);
     localStorage.setItem('staff_user', JSON.stringify(userData));

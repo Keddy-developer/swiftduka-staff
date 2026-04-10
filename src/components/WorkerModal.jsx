@@ -19,8 +19,8 @@ const PAY_TYPES = [
 ];
 
 const PAYMENT_METHODS = [
-  { value: 'mpesa', label: 'M-Pesa B2C' },
-  { value: 'bank', label: 'Bank Transfer' },
+  { value: 'MPESA', label: 'M-Pesa B2C' },
+  { value: 'BANK', label: 'Bank Transfer' },
 ];
 
 const WorkerModal = ({ worker, onClose, onSaved }) => {
@@ -44,10 +44,43 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
     kraPin: worker?.kraPin || '',
     isEligibleForStatutory: worker?.isEligibleForStatutory !== undefined ? worker.isEligibleForStatutory : true,
     // Payment
-    paymentType: worker?.paymentMethod?.type || 'mpesa',
-    mpesaNumber: worker?.paymentMethod?.mpesaNumber || '',
+    paymentType: worker?.workerProfile?.paymentMethod || 'MPESA',
+    mpesaNumber: worker?.workerProfile?.mpesaNumber || '',
+    bankName: worker?.workerProfile?.bankName || '',
+    bankBranch: worker?.workerProfile?.bankBranch || '',
+    accountName: worker?.workerProfile?.accountName || '',
+    accountNumber: worker?.workerProfile?.accountNumber || '',
     password: '',
   });
+
+  const [lookingUp, setLookingUp] = useState(false);
+  const [existingUser, setExistingUser] = useState(null);
+
+  const checkAvailability = async (query = {}) => {
+    const q = { email: query.email || form.email, phone: query.phone || form.phone };
+    if (!q.email && !q.phone) return;
+    
+    setLookingUp(true);
+    try {
+      const { data } = await axiosInstance.get('/workforce/workers/check-availability', { params: q });
+      if (data.exists) {
+        setExistingUser(data.user);
+        setForm(prev => ({
+          ...prev,
+          firstName: data.user.firstName || prev.firstName,
+          lastName: data.user.lastName || prev.lastName,
+          email: data.user.email || prev.email,
+          phone: data.user.phone || prev.phone
+        }));
+      } else {
+        setExistingUser(null);
+      }
+    } catch {
+      setExistingUser(null);
+    } finally {
+      setLookingUp(false);
+    }
+  };
 
   useEffect(() => {
     axiosInstance.get('/delivery/hubs')
@@ -81,7 +114,13 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
         kraPin: form.kraPin,
         isEligibleForStatutory: form.isEligibleForStatutory,
         // Payment
-        paymentMethod: { type: form.paymentType, mpesaNumber: form.mpesaNumber },
+        // Payment
+        paymentMethod: form.paymentType,
+        mpesaNumber: form.mpesaNumber,
+        bankName: form.bankName,
+        bankBranch: form.bankBranch,
+        accountName: form.accountName,
+        accountNumber: form.accountNumber,
       };
       
       if (!isEdit) payload.password = form.password || '12345678';
@@ -158,17 +197,47 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
                     <label className="form-label">Phone Number *</label>
                     <div className="relative group">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                      <input value={form.phone} onChange={set('phone')} placeholder="07XXXXXXXX" className="form-input pl-11" required />
+                      <input 
+                        value={form.phone} 
+                        onChange={set('phone')} 
+                        onBlur={() => checkAvailability({ phone: form.phone })}
+                        placeholder="07XXXXXXXX" 
+                        className="form-input pl-11" 
+                        required 
+                      />
+                      {lookingUp && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-primary animate-spin" />}
                     </div>
                   </div>
                   <div>
                     <label className="form-label">Work Email</label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                      <input type="email" value={form.email} onChange={set('email')} placeholder="worker@ikosoko.com" className="form-input pl-11" />
+                      <input 
+                         type="email" 
+                         value={form.email} 
+                         onChange={set('email')} 
+                         onBlur={() => checkAvailability({ email: form.email })}
+                         placeholder="worker@ikosoko.com" 
+                         className="form-input pl-11" 
+                      />
                     </div>
                   </div>
                 </div>
+
+                {existingUser && !isEdit && (
+                  <div className="p-5 bg-emerald-50 border-2 border-emerald-100 rounded-3xl flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+                    <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-600">
+                      <ShieldCheck size={24} />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-1">Existing Account Linked</h4>
+                      <p className="text-[11px] text-emerald-700 font-bold leading-tight">
+                        User found as <span className="font-black italic underline">{existingUser.currentRoles.join(' & ')}</span>. 
+                        They will use their existing credentials to log in to <strong>staff.ikosoko.com</strong>.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -189,11 +258,11 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
                   </div>
                 </div>
 
-                {!isEdit && (
+                {!isEdit && !existingUser && (
                   <div className="pt-4 border-t border-slate-100">
                     <label className="form-label">System Access Password</label>
                     <input type="password" value={form.password} onChange={set('password')} placeholder="Default: 12345678" className="form-input" />
-                    <p className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-widest">Worker will be prompted to change this</p>
+                    <p className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-widest">A temporary password for the new account</p>
                   </div>
                 )}
               </div>
@@ -286,15 +355,38 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
                   <div>
                     <label className="form-label">Primary Method</label>
                     <select value={form.paymentType} onChange={set('paymentType')} className="form-select border-2">
-                      {PAYMENT_METHODS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                       <option value="MPESA">M-Pesa B2C</option>
+                       <option value="BANK">Bank Transfer</option>
                     </select>
                   </div>
-                  {form.paymentType === 'mpesa' && (
+                  {form.paymentType === 'MPESA' ? (
                     <div>
                       <label className="form-label">M-Pesa B2C Number</label>
                       <div className="relative group">
                         <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input value={form.mpesaNumber} onChange={set('mpesaNumber')} placeholder="07XXXXXXXX" className="form-input pl-11 font-black" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="col-span-2 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                      <div className="col-span-2">
+                         <label className="form-label text-primary font-black">Bank Account Details</label>
+                      </div>
+                      <div>
+                        <label className="form-label">Bank Name</label>
+                        <input value={form.bankName} onChange={set('bankName')} placeholder="e.g. KCB, Equity" className="form-input" />
+                      </div>
+                      <div>
+                        <label className="form-label">Branch Name/Code</label>
+                        <input value={form.bankBranch} onChange={set('bankBranch')} placeholder="e.g. Westlands" className="form-input" />
+                      </div>
+                      <div>
+                        <label className="form-label">Account Name</label>
+                        <input value={form.accountName} onChange={set('accountName')} placeholder="Full Name on Account" className="form-input" />
+                      </div>
+                      <div>
+                        <label className="form-label">Account Number</label>
+                        <input value={form.accountNumber} onChange={set('accountNumber')} placeholder="01XXXXXXXXXX" className="form-input font-black" />
                       </div>
                     </div>
                   )}

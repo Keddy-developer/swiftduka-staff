@@ -150,7 +150,13 @@ const WorkerDetail = () => {
             {[
               { icon: Phone, label: 'Phone', value: worker.phone || '—' },
               { icon: MapPin, label: 'Center', value: worker.hubName || 'Unassigned' },
-              { icon: CreditCard, label: 'Payment', value: worker.paymentMethod ? `${worker.paymentMethod.type?.toUpperCase()} · ${worker.paymentMethod.mpesaNumber || '—'}` : 'Not set' },
+              { 
+                icon: CreditCard, 
+                label: 'Payment', 
+                value: worker.workerProfile?.paymentMethod === 'BANK' 
+                  ? `${worker.workerProfile.bankName} · ${worker.workerProfile.accountNumber || '—'}`
+                  : `M-PESA · ${worker.workerProfile?.mpesaNumber || '—'}`
+              },
             ].map(info => (
               <div key={info.label} className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0">
