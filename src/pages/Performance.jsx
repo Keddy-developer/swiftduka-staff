@@ -4,7 +4,7 @@ import axiosInstance from '../services/axiosConfig';
 import {
   Trophy, TrendingDown, Clock, Activity,
   Filter, AlertCircle, RefreshCw, ChevronRight,
-  Target, Zap, SlidersHorizontal, BarChart3
+  Target, Zap, SlidersHorizontal, BarChart3, Users, Package
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -25,8 +25,8 @@ const Performance = () => {
       setData(metrics);
       
       if (isAdmin && hubs.length === 0) {
-        const { data: hubsData } = await axiosInstance.get('/workforce/centers');
-        setHubs(hubsData.centers || []);
+        const { data: hubsData } = await axiosInstance.get('/workforce/hubs');
+        setHubs(hubsData.hubs || []);
       }
     } catch (err) {
       console.error(err);
@@ -104,7 +104,7 @@ const Performance = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {data?.rankings.slice(0, 10).map((r, i) => (
+                {data?.rankings?.slice(0, 10).map((r, i) => (
                   <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-6 py-4 font-black text-slate-400 text-xs">#{i + 1}</td>
                     <td className="px-6 py-4">
@@ -149,8 +149,8 @@ const Performance = () => {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Task completion time (Minutes)</p>
             </div>
           </div>
-          <div className="p-6 flex-1">
-            {data?.insights.length > 0 ? (
+          <div className="p-6 flex-1 min-h-[350px]">
+            {data?.insights?.length > 0 ? (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={data.insights} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -166,7 +166,7 @@ const Performance = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-slate-400 text-xs font-black uppercase tracking-widest">
+              <div className="h-full flex items-center justify-center text-slate-400 text-xs font-black uppercase tracking-widest min-h-[320px]">
                 No completion data recorded yet
               </div>
             )}
@@ -208,9 +208,25 @@ const Performance = () => {
                Anomaly Detection
             </h3>
             <div className="flex-1 flex flex-col justify-center text-center py-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-               <Activity className="mx-auto text-slate-300 mb-3" size={32} />
-               <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Scanning Patterns Neutral</p>
-               <p className="text-[10px] text-slate-400 font-bold mt-1 tracking-tight">No suspicious scan activity or fake confirmations detected in the last 24h.</p>
+               {data?.anomalies?.length > 0 ? (
+                 <div className="space-y-3 px-4 text-left">
+                    {data.anomalies.slice(0, 3).map((a, i) => (
+                      <div key={i} className="flex gap-2 items-start">
+                         <AlertCircle size={14} className="text-rose-500 mt-1 flex-shrink-0" />
+                         <div>
+                            <p className="text-[10px] font-black text-slate-900 leading-tight">{a.title}</p>
+                            <p className="text-[9px] font-bold text-slate-400 capitalize">{a.user ? `${a.user.firstName} ${a.user.lastName}` : 'System'}</p>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+               ) : (
+                 <>
+                    <Activity className="mx-auto text-slate-300 mb-3" size={32} />
+                    <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Scanning Patterns Neutral</p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1 tracking-tight">No suspicious activity detected in the last 24h.</p>
+                 </>
+               )}
             </div>
             <button className="mt-4 text-[10px] font-black text-slate-400 hover:text-primary transition-colors uppercase tracking-widest flex items-center justify-center gap-2">
                View Full Security Log <ChevronRight size={10} />

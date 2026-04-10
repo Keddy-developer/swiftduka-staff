@@ -26,6 +26,7 @@ import Allowances from './pages/Allowances';
 import BonusRules from './pages/BonusRules';
 import PayrollRun from './pages/PayrollRun';
 import Performance from './pages/Performance';
+import TaskTemplates from './pages/TaskTemplates';
 import NotificationDropdown from './components/NotificationDropdown';
 
 /* ─── helpers ─── */
@@ -56,6 +57,7 @@ const ALL_LINKS = [
   { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'hq_staff'] },
   { name: 'Performance', icon: Activity, path: '/performance', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
+  { name: 'Task Config', icon: Settings, path: '/templates', roles: ['admin', 'hq_staff'] },
   { name: 'My Wallet', icon: Wallet, path: '/wallet', roles: ['fulfillment_staff', 'rider', 'pickup_agent'] },
 ];
 
@@ -264,6 +266,11 @@ function App() {
           <Route path="/performance" element={
             <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
               <Performance />
+            </PrivateRoute>
+          } />
+          <Route path="/templates" element={
+            <PrivateRoute allowedRoles={['hq_staff']}>
+              <TaskTemplates />
             </PrivateRoute>
           } />
           <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />

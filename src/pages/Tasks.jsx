@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import {
   ClipboardList, Plus, Search, Filter, RefreshCw,
   CheckCircle2, Clock, Loader2, ChevronRight, X, User,
-  Calendar, AlertTriangle, ArrowRight
+  Calendar, AlertTriangle, ArrowRight, Phone, MessageSquare, MapPin, 
+  ExternalLink, ChevronDown, ChevronUp, Package, QrCode
 } from 'lucide-react';
 import TaskModal from '../components/TaskModal';
 
@@ -40,7 +41,7 @@ const Tasks = () => {
   const [showModal, setShowModal] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [verifyingTask, setVerifyingTask] = useState(null);
+  const [expandedTask, setExpandedTask] = useState(null);
   const LIMIT = 50;
 
   const fetchTasks = useCallback(async () => {
@@ -54,6 +55,7 @@ const Tasks = () => {
       const { data } = await axiosInstance.get('/workforce/tasks', { params });
       setTasks(data.tasks || []);
       setTotal(data.total || 0);
+      setExpandedTask(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to load tasks');
     } finally {
@@ -183,12 +185,14 @@ const Tasks = () => {
                   <th>Payout</th>
                   <th>Created</th>
                   <th>Status</th>
+                  <th>More</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {tasks.map(task => (
-                  <tr key={task.id} className="group hover:bg-slate-50 transition-colors">
+                  <React.Fragment key={task.id}>
+                  <tr className={`group transition-colors ${expandedTask === task.id ? 'bg-slate-50' : 'hover:bg-slate-50'}`}>
                     <td className="pl-6">
                       <span className="font-mono text-[11px] font-black text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                         {task.orderRef || 'MANUAL'}
@@ -232,6 +236,14 @@ const Tasks = () => {
                       </div>
                     </td>
                     <td>
+                        <button 
+                            onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                            className="p-2 text-slate-400 hover:text-primary transition-colors"
+                        >
+                            {expandedTask === task.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                    </td>
+                    <td>
                       <div className="flex items-center gap-2">
                         {task.status !== 'completed' && (
                           <button
@@ -260,6 +272,101 @@ const Tasks = () => {
                       </div>
                     </td>
                   </tr>
+                  
+                  {/* Expanded Rider View */}
+                  {expandedTask === task.id && (
+                    <tr>
+                        <td colSpan={canAssign ? 8 : 7} className="px-6 py-6 bg-slate-50/50 border-y border-slate-100">
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-top-2 duration-300">
+                                {/* Details Card */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                        <Package size={14} className="text-primary" />
+                                        Task Operations
+                                    </div>
+                                    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="text-slate-500 font-bold">Payout</span>
+                                            <span className="text-slate-900 font-black">KES {task.amount.toLocaleString()}</span>
+                                        </div>
+                                        <div className="text-xs space-y-1">
+                                            <span className="text-slate-500 font-bold">Items Manifest:</span>
+                                            <p className="text-slate-900 font-bold leading-relaxed">{task.metadata?.items || "General Cargo / Manual Assignment"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Customer Card */}
+                                {(task.type === 'delivery' || task.metadata) && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                            {(task.type === 'pickup' && task.metadata?.station) ? <MapPin size={14} className="text-emerald-500" /> : <User size={14} className="text-blue-500" />}
+                                            {(task.type === 'pickup' && task.metadata?.station) ? 'Pickup Location' : 'Customer Info'}
+                                        </div>
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
+                                                    <User size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-black text-slate-900">{task.metadata?.station?.name || task.metadata?.customerName || "No Name Provided"}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500">{task.metadata?.station?.phone || task.metadata?.customerPhone || "No Phone Number"}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex gap-2">
+                                                <a 
+                                                    href={`tel:${task.metadata?.station?.phone || task.metadata?.customerPhone}`}
+                                                    className="flex-1 btn-secondary py-2 flex items-center justify-center gap-2 text-[10px] font-black"
+                                                >
+                                                    <Phone size={14} /> Call
+                                                </a>
+                                                <a 
+                                                    href={`https://wa.me/${(task.metadata?.station?.phone || task.metadata?.customerPhone)?.replace(/\D/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="flex-1 btn-secondary py-2 flex items-center justify-center gap-2 text-[10px] font-black"
+                                                >
+                                                    <MessageSquare size={14} /> WhatsApp
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Address Card */}
+                                {task.metadata?.address && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                            <MapPin size={14} className="text-rose-500" />
+                                            Navigation
+                                        </div>
+                                        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0">
+                                                    <MapPin size={16} />
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-700 leading-relaxed">
+                                                    {task.metadata?.station?.address || task.metadata?.address}
+                                                </p>
+                                            </div>
+                                            
+                                            <a 
+                                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.metadata?.station?.address || task.metadata?.address)}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="w-full btn-primary py-2 flex items-center justify-center gap-2 text-[10px] font-black shadow-lg shadow-primary/20"
+                                            >
+                                                <ExternalLink size={14} /> View on Maps
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
+                             </div>
+                        </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

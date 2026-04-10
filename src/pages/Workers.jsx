@@ -158,7 +158,7 @@ const Workers = () => {
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search by name or phone..."
+            placeholder="Search by name, phone or email..."
             className="form-input pl-9"
           />
           {search && (

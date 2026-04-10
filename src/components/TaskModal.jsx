@@ -21,11 +21,10 @@ const TaskModal = ({ onClose, onSaved }) => {
   useEffect(() => {
     Promise.all([
       axiosInstance.get('/workforce/workers', { params: { isActive: true } }),
-      axiosInstance.get('/workforce/roles')
-    ]).then(([resWorkers, resRoles]) => {
+      axiosInstance.get('/workforce/templates')
+    ]).then(([resWorkers, resTemplates]) => {
       setWorkers(resWorkers.data.workers || []);
-      const allTemplates = resRoles.data.roles?.flatMap(r => r.taskTemplates) || [];
-      setTemplates(allTemplates);
+      setTemplates(resTemplates.data.templates || []);
     }).catch(() => {});
   }, []);
 
