@@ -126,15 +126,15 @@ const Deductions = () => {
       </div>
 
       {/* Kenya statutory presets banner */}
-      {isAdmin && rules.length === 0 && (
+      {isAdmin && KENYA_DEFAULTS.filter(p => !rules.some(r => r.name === p.name)).length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-3">
             <ShieldCheck size={18} className="text-amber-600" />
             <h3 className="font-black text-amber-900 text-sm">Kenya Statutory Presets</h3>
           </div>
-          <p className="text-xs text-amber-700 mb-4">No deduction rules set up yet. Add these Kenya-specific presets to get started quickly:</p>
+          <p className="text-xs text-amber-700 mb-4">{rules.length === 0 ? 'No deduction rules set up yet. Add these Kenya-specific presets to get started quickly:' : 'Add more Kenya-specific presets:'}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {KENYA_DEFAULTS.map(p => (
+            {KENYA_DEFAULTS.filter(p => !rules.some(r => r.name === p.name)).map(p => (
               <div key={p.name} className="bg-white border border-amber-100 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">{p.icon}</span>

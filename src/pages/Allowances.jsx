@@ -110,12 +110,12 @@ const Allowances = () => {
         </div>
       </div>
 
-      {/* Preset suggestions (when list is empty) */}
-      {(isAdmin || isManager) && allowances.length === 0 && (
+      {/* Preset suggestions */}
+      {(isAdmin || isManager) && PRESETS.filter(p => !allowances.some(a => a.name === p.name)).length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
           <h3 className="font-black text-blue-900 text-sm mb-4">Start with common allowance presets:</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {PRESETS.map(p => (
+            {PRESETS.filter(p => !allowances.some(a => a.name === p.name)).map(p => (
               <div key={p.name} className="bg-white border border-blue-100 rounded-xl p-4">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${p.color}`}>
                   <p.icon size={16} />

@@ -90,11 +90,11 @@ const BonusRules = () => {
       </div>
 
       {/* Preset suggestions */}
-      {(isAdmin || isManager) && rules.length === 0 && (
+      {(isAdmin || isManager) && PRESETS.filter(p => !rules.some(r => r.name === p.name)).length > 0 && (
         <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6">
           <h3 className="font-black text-violet-900 text-sm mb-4">Bonus Presets — pick one to get started:</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PRESETS.map(p => {
+            {PRESETS.filter(p => !rules.some(r => r.name === p.name)).map(p => {
               const meta = BONUS_TYPE_META[p.bonusType];
               const Icon = meta.icon;
               return (
