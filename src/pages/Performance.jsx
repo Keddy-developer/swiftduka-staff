@@ -4,12 +4,13 @@ import axiosInstance from '../services/axiosConfig';
 import {
   Trophy, TrendingDown, Clock, Activity,
   Filter, AlertCircle, RefreshCw, ChevronRight,
-  Target, Zap, SlidersHorizontal, BarChart3, Users, Package
+  Target, Zap, SlidersHorizontal, BarChart3, Users, Package, CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const Performance = () => {
   const { user, isAdmin, isManager } = useAuth();
@@ -136,7 +137,7 @@ const Performance = () => {
           </div>
         </div>
 
-        {/* AI & Staffing */}
+        {/* AI & Staffing Quick Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white overflow-hidden relative group">
               <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -259,7 +260,7 @@ const Performance = () => {
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-2xl bg-primary/5 flex items-center justify-center text-[11px] font-black text-primary border border-primary/5 shadow-inner">
-                        {r.name.split(' ').map(n=>n[0]).join('')}
+                        {r.name?.split(' ').map(n=>n[0]).join('')}
                       </div>
                       <div>
                         <p className="text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{r.name}</p>
@@ -322,9 +323,6 @@ const Performance = () => {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing all active staff members in current hub filter</p>
         </div>
       </div>
-    </div>
-  );
-};
 
       {/* Suggested Improvements / AI Insights */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -355,7 +353,7 @@ const Performance = () => {
                  ))
                ) : (
                  <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
-                   <p className="text-xs font-bold text-slate-400 italic">No specific automation paths identified yet.</p>
+                    <p className="text-xs font-bold text-slate-400 italic">No specific automation paths identified yet.</p>
                  </div>
                )}
             </div>
