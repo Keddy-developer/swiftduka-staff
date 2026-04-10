@@ -78,11 +78,11 @@ const Dashboard = () => {
   }
 
   const topCards = [
-    { label: 'Total Workers', value: stats.totalWorkers, icon: Users, color: 'slate', sub: `${stats.activeWorkers} active`, trend: stats.workerGrowth || '+0' },
+    (isAdmin || isManager || isHQ) && { label: 'Total Workers', value: stats.totalWorkers, icon: Users, color: 'slate', sub: `${stats.activeWorkers} active`, trend: stats.workerGrowth || '+0' },
     { label: 'Tasks Complete', value: stats.tasksCompleted, icon: CheckCircle2, color: 'blue', sub: `${stats.tasksPending} pending`, trend: stats.taskGrowth || '+0' },
     { label: 'Total Earnings', value: formatKes(stats.totalEarnings), icon: DollarSign, color: 'green', sub: 'Current Period', trend: stats.earningGrowth || '+0%' },
     { label: 'Pending Payouts', value: formatKes(stats.pendingPayouts), icon: Wallet, color: 'amber', sub: 'Awaiting approval' },
-  ];
+  ].filter(Boolean);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -149,32 +149,34 @@ const Dashboard = () => {
         </div>
 
         {/* Workers by role */}
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight">Workers by Role</h3>
-              <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-0.5">Distribution</p>
-            </div>
-            <UserCheck size={18} className="text-slate-300" />
-          </div>
-          <div className="p-6 h-64">
-            {stats.byRole?.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.byRole} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
-                  <XAxis type="number" axisLine={false} tickLine={false} fontSize={10} fontWeight={700} stroke="#94A3B8" />
-                  <YAxis type="category" dataKey="role" axisLine={false} tickLine={false} fontSize={10} fontWeight={700} stroke="#94A3B8" width={70} />
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]} fill="#062821" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">
-                No role data available
+        {(isAdmin || isManager || isHQ) && (
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-black text-slate-900 tracking-tight">Workers by Role</h3>
+                <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-0.5">Distribution</p>
               </div>
-            )}
+              <UserCheck size={18} className="text-slate-300" />
+            </div>
+            <div className="p-6 h-64">
+              {stats.byRole?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.byRole} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                    <XAxis type="number" axisLine={false} tickLine={false} fontSize={10} fontWeight={700} stroke="#94A3B8" />
+                    <YAxis type="category" dataKey="role" axisLine={false} tickLine={false} fontSize={10} fontWeight={700} stroke="#94A3B8" width={70} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '11px' }} />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} fill="#062821" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-300 text-xs font-bold uppercase tracking-widest">
+                  No role data available
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Recent Activity + Quick Links */}

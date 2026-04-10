@@ -95,63 +95,69 @@ const Earnings = () => {
           <p className="page-subtitle">Track and approve payroll records for {PERIODS.find(p => p.value === period)?.label}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
-            <Download size={13} /> EXPORT CSV
-          </button>
+          {canManagePayroll && (
+            <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
+              <Download size={13} /> EXPORT CSV
+            </button>
+          )}
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Total Net Payout', value: `KES ${(summary?.totalNet || 0).toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600 border-l-emerald-500' },
-          { label: 'Pending Approval', value: `KES ${(summary?.pendingTotal || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-amber-600 border-l-amber-500' },
-          { label: 'Total Workers', value: summary?.workerCount || earnings.length, icon: Users, color: 'text-blue-600 border-l-blue-500' },
-        ].map(c => (
-          <div key={c.label} className={`bg-white border border-slate-200 border-l-4 rounded-2xl p-6 shadow-sm ${c.color} transition-all hover:shadow-md`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
-                <c.icon size={15} />
+      {(isAdmin || isHQ) && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: 'Total Net Payout', value: `KES ${(summary?.totalNet || 0).toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600 border-l-emerald-500' },
+            { label: 'Pending Approval', value: `KES ${(summary?.pendingTotal || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-amber-600 border-l-amber-500' },
+            { label: 'Total Workers', value: summary?.workerCount || earnings.length, icon: Users, color: 'text-blue-600 border-l-blue-500' },
+          ].map(c => (
+            <div key={c.label} className={`bg-white border border-slate-200 border-l-4 rounded-2xl p-6 shadow-sm ${c.color} transition-all hover:shadow-md`}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+                  <c.icon size={15} />
+                </div>
+                <span className="text-[10px] font-black text-slate-400 tracking-widest">{c.label.toUpperCase()}</span>
               </div>
-              <span className="text-[10px] font-black text-slate-400 tracking-widest">{c.label.toUpperCase()}</span>
+              <p className="text-3xl font-black text-slate-900 tracking-tight">{c.value}</p>
             </div>
-            <p className="text-3xl font-black text-slate-900 tracking-tight">{c.value}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Role Chart & Filters */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="text-base font-black text-slate-900 tracking-tight">Earnings Distribution</h3>
-            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 tracking-widest uppercase">
-              <div className="w-2 h-2 rounded-full bg-primary" /> Net Pay By Role
+        {(isAdmin || isHQ) && (
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-base font-black text-slate-900 tracking-tight">Earnings Distribution</h3>
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 tracking-widest uppercase">
+                <div className="w-2 h-2 rounded-full bg-primary" /> Net Pay By Role
+              </div>
+            </div>
+            <div className="p-6 h-64">
+              {roleChartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={roleChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="role" axisLine={false} tickLine={false} fontSize={10} fontWeight={900} stroke="#64748B" />
+                    <YAxis axisLine={false} tickLine={false} fontSize={10} fontWeight={900} stroke="#64748B" tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
+                    <Tooltip 
+                      cursor={{fill: 'rgba(0,0,0,0.02)'}}
+                      contentStyle={{ borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: 'bold' }} 
+                    />
+                    <Bar dataKey="earnings" fill="#062821" radius={[8, 8, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-300 font-bold uppercase tracking-widest text-xs opacity-50">
+                  No enough data for chart
+                </div>
+              )}
             </div>
           </div>
-          <div className="p-6 h-64">
-            {roleChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={roleChartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="role" axisLine={false} tickLine={false} fontSize={10} fontWeight={900} stroke="#64748B" />
-                  <YAxis axisLine={false} tickLine={false} fontSize={10} fontWeight={900} stroke="#64748B" tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
-                  <Tooltip 
-                    cursor={{fill: 'rgba(0,0,0,0.02)'}}
-                    contentStyle={{ borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: 'bold' }} 
-                  />
-                  <Bar dataKey="earnings" fill="#062821" radius={[8, 8, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-300 font-bold uppercase tracking-widest text-xs opacity-50">
-                No enough data for chart
-              </div>
-            )}
-          </div>
-        </div>
+        )}
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-sm p-6 text-white space-y-5">
+        <div className={`bg-slate-900 border border-slate-800 rounded-2xl shadow-sm p-6 text-white space-y-5 ${!(isAdmin || isHQ) ? 'lg:col-span-3' : ''}`}>
           <div className="flex items-center gap-2 mb-2">
             <Filter size={16} className="text-secondary" />
             <h3 className="text-sm font-black tracking-tight uppercase">Filters</h3>

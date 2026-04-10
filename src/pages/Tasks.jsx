@@ -80,7 +80,7 @@ const Tasks = () => {
     completed: tasks.filter(t => t.status === 'completed').length,
   };
 
-  const canAssign = isAdmin || isManager;
+  const canAssign = isAdmin || isManager || isHQ;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -113,20 +113,38 @@ const Tasks = () => {
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search by order ref or worker name..."
-            className="form-input pl-9"
-          />
-          {search && (
-            <button onClick={() => { setSearch(''); setPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        {canAssign && (
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search by order ref or worker name..."
+              className="form-input pl-9"
+            />
+            {search && (
+              <button onClick={() => { setSearch(''); setPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
+        {!canAssign && (
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              value={search}
+              onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search by order ref..."
+              className="form-input pl-9"
+            />
+            {search && (
+              <button onClick={() => { setSearch(''); setPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
         <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }} className="form-select w-auto">
           {STATUS_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
@@ -158,7 +176,7 @@ const Tasks = () => {
                 <tr>
                   <th className="pl-6">Order Ref</th>
                   <th>Type</th>
-                  <th>Assigned To</th>
+                  {canAssign && <th>Assigned To</th>}
                   <th>Payout</th>
                   <th>Created</th>
                   <th>Status</th>
@@ -179,14 +197,16 @@ const Tasks = () => {
                         {task.type}
                       </span>
                     </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center font-black text-[10px] text-primary">
-                          {task.assignedTo?.split(' ').map(n => n[0]).join('') || '?'}
+                    {canAssign && (
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center font-black text-[10px] text-primary">
+                            {task.assignedTo?.split(' ').map(n => n[0]).join('') || '?'}
+                          </div>
+                          <span className="font-black text-slate-900">{task.assignedTo || 'Unassigned'}</span>
                         </div>
-                        <span className="font-black text-slate-900">{task.assignedTo || 'Unassigned'}</span>
-                      </div>
-                    </td>
+                      </td>
+                    )}
                     <td>
                       <span className="font-black text-slate-900">KES {(task.payoutAmount || 0).toLocaleString()}</span>
                     </td>
