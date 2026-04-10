@@ -149,7 +149,7 @@ const Performance = () => {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Task completion time (Minutes)</p>
             </div>
           </div>
-          <div className="p-6 flex-1 min-h-[350px]">
+          <div className="p-6 flex-1" style={{ height: '350px', minHeight: '350px' }}>
             {data?.insights?.length > 0 ? (
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={data.insights} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>

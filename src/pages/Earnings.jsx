@@ -141,7 +141,7 @@ const Earnings = () => {
                 <div className="w-2 h-2 rounded-full bg-primary" /> Net Pay By Role
               </div>
             </div>
-            <div className="p-6 h-64">
+            <div className="p-6" style={{ height: '256px', minHeight: '256px' }}>
               {roleChartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={roleChartData}>

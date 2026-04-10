@@ -120,9 +120,9 @@ const Dashboard = () => {
             </div>
             <TrendingUp size={18} className="text-slate-300" />
           </div>
-          <div className="p-6 h-64">
-            {stats.earningsChart?.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="p-6" style={{ height: '256px', minHeight: '256px' }}>
+              {stats.earningsChart?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.earningsChart}>
                   <defs>
                     <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
@@ -158,7 +158,7 @@ const Dashboard = () => {
               </div>
               <UserCheck size={18} className="text-slate-300" />
             </div>
-            <div className="p-6 h-64">
+            <div className="p-6" style={{ height: '256px', minHeight: '256px' }}>
               {stats.byRole?.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.byRole} layout="vertical">

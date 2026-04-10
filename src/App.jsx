@@ -54,7 +54,7 @@ const ALL_LINKS = [
   { name: 'Workers', icon: Users, path: '/workers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Tasks', icon: ClipboardList, path: '/tasks', roles: ['admin', 'hq_staff', 'fulfillment_manager', 'fulfillment_staff', 'rider', 'pickup_agent'] },
   { name: 'Centers', icon: Building2, path: '/centers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
-  { name: 'Payroll Engine', icon: Package, path: '/payroll', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
+  { name: 'Payroll Engine', icon: Package, path: '/payroll', roles: ['admin', 'hq_staff'] },
   { name: 'Deductions', icon: CreditCard, path: '/deductions', roles: ['admin', 'hq_staff'] },
   { name: 'Allowances', icon: Wallet, path: '/allowances', roles: ['admin', 'hq_staff'] },
   { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff'] },
@@ -258,7 +258,7 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/payroll" element={
-            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
+            <PrivateRoute allowedRoles={['hq_staff']}>
               <PayrollRun />
             </PrivateRoute>
           } />
