@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import {
   Calculator, Play, Users, CheckCircle2, RefreshCw,
   DollarSign, TrendingDown, ArrowRight, FileText, AlertTriangle,
-  Zap, Loader2, ArrowRightCircle
+  Zap, Loader2, ArrowRightCircle, History, Trash2, Eye, Archive, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 const PERIODS = (() => {
@@ -33,6 +33,13 @@ const PayrollRun = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [lastBulkResult, setLastBulkResult] = useState(null);
   const [loadingWorkers, setLoadingWorkers] = useState(true);
+  
+  // History State
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [expandedPeriod, setExpandedPeriod] = useState(null);
+  const [periodRecords, setPeriodRecords] = useState({}); // { period: [records] }
+  const [loadingPeriodDetails, setLoadingPeriodDetails] = useState(null);
 
   useEffect(() => {
     setLoadingWorkers(true);
@@ -40,7 +47,57 @@ const PayrollRun = () => {
       .then(({ data }) => setWorkers(data.workers || []))
       .catch(() => toast.error('Failed to load personnel list'))
       .finally(() => setLoadingWorkers(false));
+
+    fetchHistory();
   }, []);
+
+  const fetchHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const { data } = await axiosInstance.get('/workforce/payroll/history');
+      setHistory(data.history || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const loadPeriodDetails = async (periodId) => {
+    if (periodRecords[periodId]) {
+      setExpandedPeriod(expandedPeriod === periodId ? null : periodId);
+      return;
+    }
+    
+    setLoadingPeriodDetails(periodId);
+    try {
+      const { data } = await axiosInstance.get(`/workforce/payroll/history/${periodId}`);
+      setPeriodRecords(prev => ({ ...prev, [periodId]: data.records }));
+      setExpandedPeriod(periodId);
+    } catch (err) {
+      toast.error('Failed to load period details');
+    } finally {
+      setLoadingPeriodDetails(null);
+    }
+  };
+
+  const revertPeriod = async (periodId) => {
+    if (!confirm(`Are you absolutely sure you want to REVERT payroll for ${periodId}? This will delete all generated records (except for those already paid) and allow you to re-run the calculation. This action cannot be undone.`)) return;
+    
+    try {
+      await axiosInstance.delete(`/workforce/payroll/history/${periodId}`);
+      toast.success(`Payroll for ${periodId} successfully reverted.`);
+      setHistory(prev => prev.filter(h => h.period !== periodId));
+      setPeriodRecords(prev => {
+        const next = { ...prev };
+        delete next[periodId];
+        return next;
+      });
+      if (expandedPeriod === periodId) setExpandedPeriod(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Reversion failed');
+    }
+  };
 
   const loadPreview = async () => {
     if (!userId) return toast.error('Please select a worker first');
@@ -268,6 +325,143 @@ const PayrollRun = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* History Section */}
+      <div className="bg-white border border-slate-200 rounded-[2rem] shadow-sm overflow-hidden mb-12">
+        <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500">
+              <History size={20} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">Generation History</h3>
+              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Audit trail of committed payroll cycles</p>
+            </div>
+          </div>
+          <button 
+            onClick={fetchHistory}
+            className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
+          >
+            <RefreshCw size={16} className={loadingHistory ? 'animate-spin' : ''} />
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          {history.length === 0 ? (
+            <div className="p-20 text-center opacity-40">
+              <Archive size={48} className="mx-auto mb-4 text-slate-300" />
+              <p className="text-xs font-black tracking-widest uppercase">No payroll records found for any period</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {history.map((h) => (
+                <div key={h.period} className="group">
+                  <div className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => loadPeriodDetails(h.period)}>
+                    <div className="flex items-center gap-6">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-slate-400 tracking-widest uppercase mb-1">SETTLEMENT</span>
+                        <span className="text-lg font-black text-slate-900">{h.period}</span>
+                      </div>
+                      
+                      <div className="h-10 w-px bg-slate-100 hidden sm:block" />
+                      
+                      <div className="hidden sm:flex flex-col">
+                        <span className="text-[9px] font-black text-slate-400 tracking-widest uppercase">PERSONNEL COUNT</span>
+                        <span className="text-sm font-bold text-slate-700">{h.count} Workers</span>
+                      </div>
+
+                      <div className="h-10 w-px bg-slate-100 hidden md:block" />
+
+                      <div className="hidden md:flex flex-col">
+                        <span className="text-[9px] font-black text-slate-400 tracking-widest uppercase text-emerald-500">TOTAL DISBURSABLE (EST)</span>
+                        <span className="text-sm font-black text-emerald-600">{formatKes(h.totalNet)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1">
+                        {h.statusCounts.map(sc => (
+                          <span 
+                            key={sc.status} 
+                            className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${
+                              sc.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+                              sc.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' :
+                              'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {sc.status}: {sc.count}
+                          </span>
+                        ))}
+                      </div>
+                      
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); loadPeriodDetails(h.period); }}
+                        className="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:border-slate-400 transition-all shadow-sm"
+                      >
+                        {loadingPeriodDetails === h.period ? <Loader2 size={16} className="animate-spin" /> : 
+                         expandedPeriod === h.period ? <ChevronUp size={16} /> : <Eye size={16} />}
+                      </button>
+
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); revertPeriod(h.period); }}
+                        className="p-2 bg-rose-50 border border-rose-100 rounded-lg text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                        title="Revert Period"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Detail Panel */}
+                  {expandedPeriod === h.period && periodRecords[h.period] && (
+                    <div className="bg-slate-50/50 p-6 border-t border-slate-100 animate-in slide-in-from-top-2 duration-300">
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">Worker</th>
+                              <th className="px-4 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">Type</th>
+                              <th className="px-4 py-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Gross</th>
+                              <th className="px-4 py-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Deductions</th>
+                              <th className="px-4 py-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest text-primary">Net Pay</th>
+                              <th className="px-4 py-3 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {periodRecords[h.period].map(record => (
+                              <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-4 py-3">
+                                  <div className="flex flex-col">
+                                    <span className="text-xs font-bold text-slate-900">{record.user?.firstName} {record.user?.lastName}</span>
+                                    <span className="text-[10px] font-medium text-slate-400">{record.user?.phone}</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-[10px] font-black uppercase text-slate-500">{record.payType}</td>
+                                <td className="px-4 py-3 text-right text-xs font-bold text-slate-700">{formatKes(record.grossPay)}</td>
+                                <td className="px-4 py-3 text-right text-xs font-bold text-rose-500">-{formatKes(record.totalDeductions)}</td>
+                                <td className="px-4 py-3 text-right text-xs font-black text-primary">{formatKes(record.netPay)}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${
+                                    record.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+                                    record.status === 'APPROVED' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-amber-100 text-amber-700'
+                                  }`}>
+                                    {record.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
