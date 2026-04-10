@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.nixpacks
+.env
+README.md
+Dockerfile
+nginx.conf
