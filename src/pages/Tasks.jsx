@@ -40,6 +40,7 @@ const Tasks = () => {
   const [showModal, setShowModal] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [verifyingTask, setVerifyingTask] = useState(null);
   const LIMIT = 50;
 
   const fetchTasks = useCallback(async () => {
@@ -62,13 +63,15 @@ const Tasks = () => {
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
-  const updateStatus = async (task, newStatus) => {
+  const updateStatus = async (task, newStatus, verificationData = null) => {
     try {
-      await axiosInstance.patch(`/workforce/tasks/${task.id}/status`, { status: newStatus });
+      await axiosInstance.patch(`/workforce/tasks/${task.id}/status`, { 
+        status: newStatus,
+        verificationData
+      });
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
       toast.success(`Task marked as ${newStatus.replace('_', ' ')}`);
-      
-      // If completed, maybe refresh stats/wallet elsewhere if needed
+      if (verifyingTask) setVerifyingTask(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to update task');
     }
@@ -217,22 +220,35 @@ const Tasks = () => {
                       </div>
                     </td>
                     <td>
-                      <span className={`badge ${statusBadgeClass(task.status)}`}>
-                        {task.status.replace('_', ' ')}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className={`badge ${statusBadgeClass(task.status)} group-hover:scale-105 transition-transform`}>
+                          {task.status.replace('_', ' ')}
+                        </span>
+                        {task.status === 'completed' && task.efficiencyScore && (
+                           <span className="text-[10px] font-black text-emerald-600 mt-1 uppercase tracking-tighter">
+                              {Math.round(task.efficiencyScore)}% Efficiency
+                           </span>
+                        )}
+                      </div>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
                         {task.status !== 'completed' && (
                           <button
-                            onClick={() => updateStatus(task, task.status === 'pending' ? 'in_progress' : 'completed')}
+                            onClick={() => {
+                                if (task.status === 'in_progress' && (task.template?.requiresQR || task.template?.requiresSKU)) {
+                                    setVerifyingTask(task);
+                                } else {
+                                    updateStatus(task, task.status === 'pending' ? 'in_progress' : 'completed');
+                                }
+                            }}
                             className={`btn-sm flex items-center gap-1.5 text-[10px] font-black border-2 transition-all ${
                               task.status === 'pending' 
                                 ? 'border-primary text-primary hover:bg-primary hover:text-white' 
                                 : 'border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white'
                             }`}
                           >
-                            {task.status === 'pending' ? 'START' : 'DONE'}
+                            {task.status === 'pending' ? 'START' : 'VERIFY & DONE'}
                             <ArrowRight size={10} />
                           </button>
                         )}
@@ -282,6 +298,61 @@ const Tasks = () => {
           onClose={() => setShowModal(false)} 
           onSaved={(t) => { fetchTasks(); setShowModal(false); }} 
         />
+      )}
+
+      {/* Verification Flow Modal */}
+      {verifyingTask && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setVerifyingTask(null)}>
+           <div className="modal-box max-w-sm w-full shadow-2xl overflow-hidden ring-1 ring-slate-200">
+              <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
+                 <div>
+                    <h3 className="font-black text-sm tracking-tight">Security Verification</h3>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Validate action before completion</p>
+                 </div>
+                 <button onClick={() => setVerifyingTask(null)} className="text-slate-400 hover:text-white transition-colors">
+                    <X size={18} />
+                 </button>
+              </div>
+              <div className="p-6 space-y-6">
+                 <div className="flex justify-center flex-col items-center">
+                    <div className="w-24 h-24 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-slate-300 relative overflow-hidden group">
+                       <Activity className="animate-pulse" size={32} />
+                       <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-[9px] font-black text-primary">SCANNIG...</span>
+                       </div>
+                    </div>
+                    <p className="text-xs font-black text-slate-900 mt-4">
+                        {verifyingTask.template?.requiresQR ? 'SCAN ORDER QR CODE' : 'SCAN PRODUCT SKU'}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold mt-1 mb-6">Position document or product in frame</p>
+
+                    <div className="w-full space-y-2">
+                       <input 
+                          autoFocus
+                          placeholder={verifyingTask.template?.requiresQR ? 'Enter scanned QR string...' : 'Enter scanned SKU...'} 
+                          className="form-input text-center text-xs font-black border-2 border-primary/20 focus:border-primary"
+                          onKeyDown={(e) => {
+                             if (e.key === 'Enter') {
+                                updateStatus(verifyingTask, 'completed', { 
+                                   scannedValue: e.target.value, 
+                                   timestamp: new Date().toISOString() 
+                                });
+                             }
+                          }}
+                       />
+                       <p className="text-[8px] text-center font-bold text-slate-400 uppercase tracking-widest">Simulation: Type value & Press Enter</p>
+                    </div>
+                 </div>
+
+                 <button 
+                  onClick={() => setVerifyingTask(null)}
+                  className="w-full btn-secondary py-3 text-[10px] font-black tracking-widest uppercase"
+                 >
+                    Cancel Verification
+                 </button>
+              </div>
+           </div>
+        </div>
       )}
     </div>
   );

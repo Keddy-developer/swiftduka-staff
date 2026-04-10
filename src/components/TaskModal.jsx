@@ -8,19 +8,41 @@ const TASK_TYPES = ['pickup', 'packing', 'dispatch', 'delivery'];
 const TaskModal = ({ onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [workers, setWorkers] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [form, setForm] = useState({
     type: 'delivery',
     assignedToId: '',
     orderRef: '',
     amount: '',
     notes: '',
+    templateId: '',
   });
 
   useEffect(() => {
-    axiosInstance.get('/workforce/workers', { params: { isActive: true } })
-      .then(({ data }) => setWorkers(data.workers || []))
-      .catch(() => {});
+    Promise.all([
+      axiosInstance.get('/workforce/workers', { params: { isActive: true } }),
+      axiosInstance.get('/workforce/roles')
+    ]).then(([resWorkers, resRoles]) => {
+      setWorkers(resWorkers.data.workers || []);
+      const allTemplates = resRoles.data.roles?.flatMap(r => r.taskTemplates) || [];
+      setTemplates(allTemplates);
+    }).catch(() => {});
   }, []);
+
+  const handleTemplateChange = (e) => {
+    const tid = e.target.value;
+    const template = templates.find(t => t.id === tid);
+    if (template) {
+      setForm(prev => ({ 
+        ...prev, 
+        templateId: tid,
+        type: template.type.toLowerCase(),
+        notes: template.description || '',
+      }));
+    } else {
+        setForm(prev => ({ ...prev, templateId: tid }));
+    }
+  };
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
@@ -54,10 +76,24 @@ const TaskModal = ({ onClose, onSaved }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="form-label">Task Type *</label>
-            <select value={form.type} onChange={set('type')} className="form-select">
-              {TASK_TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+            <label className="form-label">Task Template (Apply preset)</label>
+            <select value={form.templateId} onChange={handleTemplateChange} className="form-select bg-slate-50 border-slate-200">
+              <option value="">— No Template (Manual) —</option>
+              {templates.map(t => <option key={t.id} value={t.id}>{t.title} ({t.priority})</option>)}
             </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+                <label className="form-label">Task Type *</label>
+                <select value={form.type} onChange={set('type')} className="form-select">
+                {TASK_TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                </select>
+            </div>
+            <div>
+                <label className="form-label">Payout (KES)</label>
+                <input type="number" value={form.amount} onChange={set('amount')} placeholder="e.g. 150" className="form-input" />
+            </div>
           </div>
 
           <div>
@@ -73,11 +109,6 @@ const TaskModal = ({ onClose, onSaved }) => {
           <div>
             <label className="form-label">Order Reference (optional)</label>
             <input value={form.orderRef} onChange={set('orderRef')} placeholder="e.g. ORD-1234" className="form-input" />
-          </div>
-
-          <div>
-            <label className="form-label">Payout Amount (KES)</label>
-            <input type="number" value={form.amount} onChange={set('amount')} placeholder="e.g. 150" className="form-input" />
           </div>
 
           <div>

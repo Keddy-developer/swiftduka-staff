@@ -92,14 +92,17 @@ const Earnings = () => {
       <div className="page-header">
         <div>
           <h1 className="page-title">Earnings</h1>
-          <p className="page-subtitle">Track and approve payroll records for {PERIODS.find(p => p.value === period)?.label}</p>
+          <p className="page-subtitle">
+            {canManagePayroll 
+              ? `Track and approve payroll records for ${PERIODS.find(p => p.value === period)?.label}`
+              : `View your earnings history and payout status for ${PERIODS.find(p => p.value === period)?.label}`
+            }
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          {canManagePayroll && (
-            <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
-              <Download size={13} /> EXPORT CSV
-            </button>
-          )}
+          <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
+            <Download size={13} /> {canManagePayroll ? 'EXPORT CSV' : 'EXPORT HISTORY'}
+          </button>
         </div>
       </div>
 
@@ -242,7 +245,7 @@ const Earnings = () => {
                   <th>Deductions</th>
                   <th>Net Pay</th>
                   <th>Status</th>
-                  {canManagePayroll && <th>Action</th>}
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -276,9 +279,9 @@ const Earnings = () => {
                         {e.status}
                       </span>
                     </td>
-                    {canManagePayroll && (
-                      <td>
-                        {e.status === 'PENDING_APPROVAL' && (
+                    <td>
+                      <div className="flex items-center gap-2">
+                        {canManagePayroll && e.status === 'PENDING_APPROVAL' && (
                           <button 
                             onClick={() => approveEarning(e.id)} 
                             disabled={approving === e.id}
@@ -288,13 +291,26 @@ const Earnings = () => {
                             APPROVE
                           </button>
                         )}
-                        {e.status === 'APPROVED' && (
+                        {(e.status === 'APPROVED' || e.status === 'DISBURSED') && (
+                          <button 
+                            onClick={() => {
+                              // Simulate download or call API for receipt
+                              toast.info("Generating your earnings receipt...");
+                              setTimeout(() => handleExport(), 1000); 
+                            }}
+                            className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-primary transition-all"
+                            title="Download Receipt"
+                          >
+                            <ArrowDownToLine size={16} />
+                          </button>
+                        )}
+                        {canManagePayroll && e.status === 'APPROVED' && (
                           <div className="text-emerald-500 px-2 flex items-center gap-1.5 font-black text-[10px] tracking-widest">
                             <CheckCircle2 size={12} /> READY
                           </div>
                         )}
-                      </td>
-                    )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

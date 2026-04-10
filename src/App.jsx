@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
   LayoutDashboard, Users, ClipboardList, DollarSign, CreditCard,
   Wallet, Building2, Settings, LogOut, Menu, X, Bell, ChevronRight,
-  Package, Briefcase
+  Package, Briefcase, Activity
 } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,6 +25,8 @@ import Deductions from './pages/Deductions';
 import Allowances from './pages/Allowances';
 import BonusRules from './pages/BonusRules';
 import PayrollRun from './pages/PayrollRun';
+import Performance from './pages/Performance';
+import NotificationDropdown from './components/NotificationDropdown';
 
 /* ─── helpers ─── */
 const ROLE_DISPLAY = {
@@ -53,6 +55,7 @@ const ALL_LINKS = [
   { name: 'Allowances', icon: Wallet, path: '/allowances', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'hq_staff'] },
+  { name: 'Performance', icon: Activity, path: '/performance', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'My Wallet', icon: Wallet, path: '/wallet', roles: ['fulfillment_staff', 'rider', 'pickup_agent'] },
 ];
 
@@ -167,10 +170,7 @@ const MainLayout = ({ children }) => {
             <div className={`hidden md:flex text-[9px] font-black px-2 py-1 rounded ${userRoleMeta.cls}`}>
               {userRoleMeta.label}
             </div>
-            <button className="relative p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
-              <Bell size={16} />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-secondary" />
-            </button>
+            <NotificationDropdown />
           </div>
         </header>
 
@@ -259,6 +259,11 @@ function App() {
           <Route path="/payments" element={
             <PrivateRoute allowedRoles={['hq_staff']}>
               <Payments />
+            </PrivateRoute>
+          } />
+          <Route path="/performance" element={
+            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
+              <Performance />
             </PrivateRoute>
           } />
           <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
