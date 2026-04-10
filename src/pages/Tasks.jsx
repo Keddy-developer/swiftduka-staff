@@ -42,6 +42,7 @@ const Tasks = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [expandedTask, setExpandedTask] = useState(null);
+  const [verifyingTask, setVerifyingTask] = useState(null);
   const LIMIT = 50;
 
   const fetchTasks = useCallback(async () => {
