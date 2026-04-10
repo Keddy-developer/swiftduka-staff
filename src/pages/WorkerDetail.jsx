@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import {
   ArrowLeft, Phone, MapPin, Wallet, CheckCircle2, Clock, Edit3, Power,
   CreditCard, History, TrendingUp, RefreshCw, Key, Trash2, FileText,
-  Loader2, Calendar
+  Loader2, Calendar, ChevronRight
 } from 'lucide-react';
 import WorkerModal from '../components/WorkerModal';
 import ResetPasswordModal from '../components/ResetPasswordModal';

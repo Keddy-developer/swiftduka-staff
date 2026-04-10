@@ -54,7 +54,7 @@ const ALL_LINKS = [
   { name: 'Workers', icon: Users, path: '/workers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Tasks', icon: ClipboardList, path: '/tasks', roles: ['admin', 'hq_staff', 'fulfillment_manager', 'fulfillment_staff', 'rider', 'pickup_agent'] },
   { name: 'Centers', icon: Building2, path: '/centers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
-  { name: 'Payroll Engine', icon: Package, path: '/payroll', roles: ['admin'] },
+  { name: 'Payroll Engine', icon: Package, path: '/payroll', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Deductions', icon: CreditCard, path: '/deductions', roles: ['admin', 'hq_staff'] },
   { name: 'Allowances', icon: Wallet, path: '/allowances', roles: ['admin', 'hq_staff'] },
   { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff'] },
@@ -252,9 +252,13 @@ function App() {
               <Centers />
             </PrivateRoute>
           } />
-          <Route path="/earnings" element={<PrivateRoute><Earnings /></PrivateRoute>} />
+          <Route path="/earnings" element={
+            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
+              <Earnings />
+            </PrivateRoute>
+          } />
           <Route path="/payroll" element={
-            <PrivateRoute>
+            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
               <PayrollRun />
             </PrivateRoute>
           } />
@@ -264,12 +268,12 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/allowances" element={
-            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
+            <PrivateRoute allowedRoles={['hq_staff']}>
               <Allowances />
             </PrivateRoute>
           } />
           <Route path="/bonuses" element={
-            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
+            <PrivateRoute allowedRoles={['hq_staff']}>
               <BonusRules />
             </PrivateRoute>
           } />
