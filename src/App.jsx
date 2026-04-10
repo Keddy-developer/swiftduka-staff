@@ -27,6 +27,9 @@ import BonusRules from './pages/BonusRules';
 import PayrollRun from './pages/PayrollRun';
 import Performance from './pages/Performance';
 import TaskTemplates from './pages/TaskTemplates';
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import NotificationDropdown from './components/NotificationDropdown';
 
 /* ─── helpers ─── */
@@ -214,6 +217,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/workers" element={

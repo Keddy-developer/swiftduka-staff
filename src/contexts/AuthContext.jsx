@@ -45,6 +45,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const forgotPassword = async (email) => {
+    return await axiosInstance.post('/auth/forgot-password', { identifier: email, portal: 'staff' });
+  };
+
   // Role helpers
   const isAdmin = user?.role?.includes('admin') || user?.role?.includes('super_admin');
   const isManager = user?.role?.includes('fulfillment_manager');
@@ -58,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
-      user, loading, login, logout,
+      user, loading, login, logout, forgotPassword,
       isAdmin, isManager, isHQ, isRider, isAgent, isStaff,
       canManagePayroll, canViewOwnCenter,
     }}>

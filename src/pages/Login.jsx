@@ -20,7 +20,12 @@ const Login = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Invalid credentials');
+      if (err?.response?.data?.requiresVerification) {
+        toast.info('Please verify your email to continue');
+        navigate(`/verify-email?email=${encodeURIComponent(err.response.data.email)}`);
+      } else {
+        toast.error(err?.response?.data?.message || 'Invalid credentials');
+      }
     } finally {
       setLoading(false);
     }
@@ -83,6 +88,15 @@ const Login = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                 >
                   {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="flex justify-end mt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-[10px] font-bold text-slate-400 hover:text-primary transition-colors uppercase tracking-wider"
+                >
+                  Forgot Password?
                 </button>
               </div>
             </div>

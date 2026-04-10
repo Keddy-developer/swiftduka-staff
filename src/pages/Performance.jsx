@@ -185,20 +185,27 @@ const Performance = () => {
               Based on task repetition and standardized flows, the following paths are recommended for automation.
             </p>
             <div className="space-y-4 relative z-10">
-               <div className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors cursor-default">
-                  <div className="flex items-center justify-between mb-1">
-                     <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Dispatch Queue</span>
-                     <span className="text-[8px] font-black px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full">HIGH ROI</span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-200">Auto-assign riders based on zone proximity instead of manual selection.</p>
-               </div>
-               <div className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors cursor-default">
-                  <div className="flex items-center justify-between mb-1">
-                     <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Packing Flow</span>
-                     <span className="text-[8px] font-black px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full">EFFICIENCY</span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-200">Implement batch packing routes to reduce warehouse traversal time.</p>
-               </div>
+               {data?.automation?.length > 0 ? (
+                 data.automation.map((opt, i) => (
+                   <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors cursor-default">
+                      <div className="flex items-center justify-between mb-1">
+                         <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            opt.type === 'emerald' ? 'text-emerald-400' : 
+                            opt.type === 'blue' ? 'text-blue-400' : 'text-amber-400'
+                         }`}>{opt.title}</span>
+                         <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${
+                            opt.type === 'emerald' ? 'bg-emerald-500/20 text-emerald-400' : 
+                            opt.type === 'blue' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-400'
+                         }`}>{opt.benefit}</span>
+                      </div>
+                      <p className="text-xs font-bold text-slate-200">{opt.description}</p>
+                   </div>
+                 ))
+               ) : (
+                 <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+                   <p className="text-xs font-bold text-slate-400 italic">No specific automation paths identified yet.</p>
+                 </div>
+               )}
             </div>
          </div>
 
@@ -244,17 +251,26 @@ const Performance = () => {
                      <Users size={16} className="text-primary" />
                      <span className="text-xs font-black text-slate-600 uppercase">Optimal Peak</span>
                   </div>
-                  <span className="text-xs font-black text-primary tracking-tight">12 Workers</span>
+                  <span className="text-xs font-black text-primary tracking-tight">
+                    {data?.staffing?.optimalStaff || 0} Workers
+                  </span>
                </div>
                <div className="p-4 bg-slate-900 rounded-xl text-white">
                   <div className="flex items-center gap-2 mb-2">
                      <BarChart3 className="text-secondary" size={14} />
-                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Current Trend</span>
+                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                       {data?.staffing?.currentTrend || 'Stable'} Trend
+                     </span>
                   </div>
                   <p className="text-xs font-bold leading-relaxed">
-                    Workload is increasing in <span className="text-secondary font-black">Morning Shifts</span>. 
-                    Redistribute 2 staff from Packing to Receiving to avoid p90 delays.
+                    {data?.staffing?.recommendation || 'Operational levels are currently within normal range.'}
                   </p>
+                  {data?.staffing?.bottleneckType && (
+                    <div className="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">
+                      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Bottleneck</span>
+                      <span className="text-[8px] font-black text-secondary tracking-widest uppercase">{data.staffing.bottleneckType}</span>
+                    </div>
+                  )}
                </div>
             </div>
          </div>

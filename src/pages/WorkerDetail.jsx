@@ -106,65 +106,106 @@ const WorkerDetail = () => {
       </button>
 
       {/* Profile Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="bg-primary h-28 relative">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, #f59e0b 0%, transparent 60%)' }} />
+      <div className="bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden">
+        {/* Cover with Mesh Gradient */}
+        <div className="h-32 relative overflow-hidden bg-[#062821]">
+          <div className="absolute inset-0 opacity-40" style={{ 
+            backgroundImage: `
+              radial-gradient(circle at 20% 50%, rgba(20, 184, 166, 0.4) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.2) 0%, transparent 50%)
+            `
+          }} />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
         </div>
+
         <div className="px-8 pb-8">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 mb-6">
-            <div className="w-24 h-24 rounded-2xl bg-white border-4 border-white shadow-xl flex items-center justify-center text-3xl font-black text-slate-700 shrink-0">
-              {worker.firstName?.[0]}{worker.lastName?.[0]}
+          <div className="flex flex-col md:flex-row md:items-end gap-6 -mt-10 mb-8">
+            {/* Avatar Container */}
+            <div className="relative group">
+              <div className="w-28 h-28 rounded-3xl bg-white p-1 shadow-2xl transition-transform duration-500 group-hover:scale-105">
+                <div className="w-full h-full rounded-[20px] bg-slate-50 border border-slate-100 flex items-center justify-center text-4xl font-black text-slate-800 tracking-tighter shadow-inner">
+                  {worker.firstName?.[0]}{worker.lastName?.[0]}
+                </div>
+              </div>
+              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white ${worker.isActive ? 'bg-emerald-500' : 'bg-slate-300'} shadow-lg`} />
             </div>
+
+            {/* Profile Info */}
             <div className="flex-1 min-w-0 pb-1">
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">{worker.firstName} {worker.lastName}</h2>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                <span className={`text-[10px] font-black px-2.5 py-1 rounded ${roleMeta.cls}`}>{roleMeta.label}</span>
-                <span className={`badge ${worker.isActive ? 'badge-active' : 'badge-inactive'}`}>
-                  {worker.isActive ? 'Active' : 'Inactive'}
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none truncate">
+                  {worker.firstName} {worker.lastName}
+                </h2>
+                <span className={`text-[10px] font-black px-2 mt-1 py-0.5 rounded-full border ${worker.isActive ? 'bg-emerald-50 border-emerald-100 text-emerald-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                  {worker.isActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
-                {worker.email && <span className="text-xs text-slate-400">{worker.email}</span>}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className={`text-[10px] font-black px-3 py-1 rounded-lg shadow-sm ${roleMeta.cls}`}>
+                  {roleMeta.label.toUpperCase()}
+                </span>
+                <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+                <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold">
+                  <Calendar size={13} className="text-slate-300" />
+                  Joined {new Date(worker.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                </div>
+                {worker.email && (
+                   <div className="hidden lg:flex items-center gap-1.5 text-slate-400 text-xs font-bold">
+                     <div className="w-1 h-1 rounded-full bg-slate-300" />
+                     {worker.email}
+                   </div>
+                )}
               </div>
             </div>
+
+            {/* Actions */}
             {isAdmin && (
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={() => setShowEdit(true)} className="btn-secondary btn-sm flex items-center gap-1.5">
-                  <Edit3 size={12} /> Edit
+              <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                <button onClick={() => setShowEdit(true)} className="btn-secondary px-4 py-2 border-slate-200 hover:border-slate-300 text-slate-700 flex items-center gap-2 rounded-xl text-xs font-black shadow-sm transition-all hover:bg-slate-50">
+                  <Edit3 size={14} className="text-slate-400" /> EDIT
                 </button>
-                <button onClick={() => setShowReset(true)} className="btn-secondary btn-sm flex items-center gap-1.5">
-                  <Key size={12} /> Reset Password
+                <div className="w-px h-8 bg-slate-100 hidden sm:block" />
+                <button onClick={() => setShowReset(true)} className="btn-secondary px-4 py-2 border-slate-200 hover:border-slate-300 text-slate-700 flex items-center gap-2 rounded-xl text-xs font-black shadow-sm transition-all hover:bg-slate-50">
+                  <Key size={14} className="text-slate-400" /> RESET
                 </button>
                 <button
                   onClick={toggleActive}
                   disabled={togglingActive}
-                  className={`btn-sm flex items-center gap-1.5 ${worker.isActive ? 'btn-danger' : 'btn-success'} disabled:opacity-60`}
+                  className={`px-4 py-2 rounded-xl font-black text-xs flex items-center gap-2 transition-all shadow-md ${
+                    worker.isActive 
+                      ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100' 
+                      : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100'
+                  } disabled:opacity-50`}
                 >
-                  {togglingActive ? <Loader2 size={12} className="animate-spin" /> : <Power size={12} />}
-                  {worker.isActive ? 'Deactivate' : 'Activate'}
+                  {togglingActive ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
+                  {worker.isActive ? 'DEACTIVATE' : 'ACTIVATE'}
                 </button>
               </div>
             )}
           </div>
 
           {/* Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { icon: Phone, label: 'Phone', value: worker.phone || '—' },
-              { icon: MapPin, label: 'Center', value: worker.hubName || 'Unassigned' },
+              { icon: Phone, label: 'Phone', value: worker.phone || '—', color: 'text-blue-500' },
+              { icon: MapPin, label: 'Fulfillment Hub', value: worker.hubName || 'Unassigned', color: 'text-rose-500' },
               { 
                 icon: CreditCard, 
-                label: 'Payment', 
+                label: 'Payment Channel', 
+                color: 'text-emerald-500',
                 value: worker.workerProfile?.paymentMethod === 'BANK' 
                   ? `${worker.workerProfile.bankName} · ${worker.workerProfile.accountNumber || '—'}`
                   : `M-PESA · ${worker.workerProfile?.mpesaNumber || '—'}`
               },
             ].map(info => (
-              <div key={info.label} className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm shrink-0">
-                  <info.icon size={15} className="text-slate-500" />
+              <div key={info.label} className="group flex items-center gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/80 transition-all hover:bg-white hover:shadow-md hover:border-white">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm shrink-0 group-hover:scale-110 transition-transform">
+                  <info.icon size={16} className={info.color} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-black text-slate-400 tracking-widest">{info.label}</p>
-                  <p className="text-sm font-bold text-slate-900 truncate">{info.value}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{info.label}</p>
+                  <p className="text-sm font-black text-slate-900 truncate tracking-tight">{info.value}</p>
                 </div>
               </div>
             ))}
@@ -172,20 +213,27 @@ const WorkerDetail = () => {
         </div>
       </div>
 
-      {/* Stat Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stat Cards Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Tasks Done', value: worker.tasksCompleted ?? 0, icon: CheckCircle2, color: 'text-blue-600' },
-          { label: 'Pending Tasks', value: worker.tasksPending ?? 0, icon: Clock, color: 'text-amber-600' },
-          { label: 'Wallet Balance', value: `KES ${(worker.walletBalance || 0).toLocaleString()}`, icon: Wallet, color: 'text-emerald-600' },
-          { label: 'Total Earnings', value: `KES ${(worker.totalEarnings || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-violet-600' },
+          { label: 'Tasks Completed', value: worker.tasksCompleted ?? 0, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Active Pipeline', value: worker.tasksPending ?? 0, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Wallet Balance', value: `KES ${(worker.walletBalance || 0).toLocaleString()}`, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Life Earnings', value: `KES ${(worker.totalEarnings || 0).toLocaleString()}`, icon: TrendingUp, color: 'text-violet-600', bg: 'bg-violet-50' },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <s.icon size={15} className={s.color} />
-              <span className="text-[10px] font-black text-slate-400 tracking-widest">{s.label}</span>
+          <div key={s.label} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-2.5 rounded-xl ${s.bg} ${s.color} transition-transform group-hover:rotate-6`}>
+                <s.icon size={20} />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronRight size={14} className="text-slate-300" />
+              </div>
             </div>
-            <p className="text-2xl font-black text-slate-900 tracking-tight">{s.value}</p>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tighter">{s.value}</p>
+            </div>
           </div>
         ))}
       </div>
