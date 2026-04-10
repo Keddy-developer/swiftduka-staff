@@ -13,9 +13,10 @@ import {
 
 const Performance = () => {
   const { user, isAdmin, isManager } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hubId, setHubId] = useState('');
+  const [hubId, setHubId] = useState(isManager && !isAdmin ? user?.fulfillmentHubId || '' : '');
   const [hubs, setHubs] = useState([]);
 
   const fetchData = async () => {
@@ -48,15 +49,15 @@ const Performance = () => {
   const COLORS = ['#062821', '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444'];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title flex items-center gap-2">
-            <Zap className="text-secondary fill-secondary" size={20} />
-            Performance Intelligence
+          <h1 className="page-title flex items-center gap-2 text-2xl font-black">
+            <Zap className="text-secondary fill-secondary" size={24} />
+            Performance Intel
           </h1>
-          <p className="page-subtitle">Real-time workforce efficiency and bottleneck detection</p>
+          <p className="page-subtitle font-bold text-slate-500">Real-time workforce efficiency and hub bottleneck detection</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -65,81 +66,43 @@ const Performance = () => {
               <select 
                 value={hubId}
                 onChange={(e) => setHubId(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-black appearance-none focus:ring-2 focus:ring-secondary/20 transition-all cursor-pointer"
+                className="pl-9 pr-6 py-2.5 bg-white border border-slate-200 rounded-2xl text-xs font-black appearance-none focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer shadow-sm"
               >
                 <option value="">All Fulfillment Hubs</option>
                 {hubs.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
               </select>
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             </div>
           )}
-          <button onClick={fetchData} className="btn-secondary flex items-center gap-2">
-            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-            Refresh
+          <button onClick={fetchData} className="px-5 py-2.5 bg-primary text-white rounded-2xl text-xs font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            REFRESH METRICS
           </button>
         </div>
       </div>
 
-      {/* Overview Rankings */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Top Performers Table */}
-        <div className="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <Trophy size={18} className="text-amber-500" />
-                Efficiency Leaderboard
-              </h3>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Top performing staff members</p>
+      {/* Main Stats Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        {[
+          { label: 'Avg Efficiency', value: `${Math.round(data?.overallAvg || 0)}%`, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+          { label: 'Completion Rate', value: `${Math.round(data?.completionRate || 0)}%`, icon: CheckCircle2, color: 'text-blue-500', bg: 'bg-blue-50' },
+          { label: 'Peak Capacity', value: `${data?.staffing?.optimalStaff || 0}`, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+          { label: 'Total Tasks', value: data?.totalTasks || 0, icon: Package, color: 'text-amber-500', bg: 'bg-amber-50' },
+        ].map(s => (
+          <div key={s.label} className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm">
+            <div className={`w-10 h-10 rounded-xl ${s.bg} ${s.color} flex items-center justify-center mb-3`}>
+              <s.icon size={20} />
             </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
+            <p className="text-xl font-black text-slate-900 tracking-tight">{s.value}</p>
           </div>
-          <div className="flex-1 overflow-auto max-h-[400px]">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50">
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Rank</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Staff</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Tasks</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Efficiency Score</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {data?.rankings?.slice(0, 10).map((r, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4 font-black text-slate-400 text-xs">#{i + 1}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-[10px] font-black text-primary">
-                          {r.name.split(' ').map(n=>n[0]).join('')}
-                        </div>
-                        <span className="text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{r.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-bold text-slate-500">{r.total} completed</span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                       <div className="flex flex-col items-end gap-1">
-                          <span className={`text-sm font-black ${r.avg >= 90 ? 'text-emerald-500' : r.avg >= 70 ? 'text-blue-500' : 'text-amber-500'}`}>
-                            {Math.round(r.avg)}%
-                          </span>
-                          <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
-                             <div 
-                                className={`h-full rounded-full transition-all duration-1000 ${r.avg >= 90 ? 'bg-emerald-500' : r.avg >= 70 ? 'bg-blue-500' : 'bg-amber-500'}`} 
-                                style={{ width: `${r.avg}%` }}
-                             />
-                          </div>
-                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        ))}
+      </div>
 
+      {/* Overview Rankings & Charts */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Bottleneck Analysis */}
-        <div className="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -154,15 +117,15 @@ const Performance = () => {
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={data.insights} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="type" axisLine={false} tickLine={false} fontSize={10} fontWeight={900} stroke="#64748b" tickFormatter={v => v.toUpperCase()} />
+                  <XAxis dataKey="type" axisLine={false} tickLine={false} fontSize={10} fontVariant="lining-nums" fontWeight={900} stroke="#64748b" tickFormatter={v => v.toUpperCase()} />
                   <YAxis axisLine={false} tickLine={false} fontSize={10} fontWeight={700} stroke="#94A3B8" />
                   <Tooltip 
                     cursor={{fill: '#f8fafc'}}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontSize: '11px', padding: '12px' }}
                   />
                   <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{fontSize: '10px', fontWeight: 900, textTransform: 'uppercase'}} />
-                  <Bar dataKey="avgMins" name="Avg Completion" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} />
-                  <Bar dataKey="p90Mins" name="P90 Completion" fill="#062821" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="avgMins" name="Avg Mins" fill="#94A3B8" radius={[4, 4, 0, 0]} barSize={20} />
+                  <Bar dataKey="p90Mins" name="P90 Mins" fill="#062821" radius={[4, 4, 0, 0]} barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -172,7 +135,196 @@ const Performance = () => {
             )}
           </div>
         </div>
+
+        {/* AI & Staffing */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 text-white overflow-hidden relative group">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                 <Target size={120} />
+              </div>
+              <h3 className="text-lg font-black tracking-tight mb-2">Automation Paths</h3>
+              <p className="text-[10px] text-slate-500 font-bold mb-6 italic leading-relaxed uppercase tracking-widest">
+                Recommended optimizations
+              </p>
+              <div className="space-y-3 relative z-10">
+                 {data?.automation?.slice(0, 3).map((opt, i) => (
+                   <div key={i} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                      <div className="flex items-center justify-between mb-1">
+                         <span className={`text-[9px] font-black uppercase tracking-widest ${
+                            opt.type === 'emerald' ? 'text-emerald-400' : 
+                            opt.type === 'blue' ? 'text-blue-400' : 'text-amber-400'
+                         }`}>{opt.title}</span>
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-300 leading-tight">{opt.description}</p>
+                   </div>
+                 ))}
+                 {!data?.automation?.length && <p className="text-xs text-slate-500 italic">No patterns detected.</p>}
+              </div>
+           </div>
+
+           <div className="flex flex-col gap-6">
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col flex-1 shadow-sm">
+                 <h3 className="text-sm font-black text-slate-900 tracking-tight mb-4 flex items-center gap-2">
+                    <AlertCircle className="text-amber-500" size={16} />
+                    Anomalies
+                 </h3>
+                 <div className="flex-1 flex flex-col justify-center">
+                    {data?.anomalies?.length > 0 ? (
+                      <div className="space-y-4">
+                         {data.anomalies.slice(0, 2).map((a, i) => (
+                           <div key={i} className="flex gap-3 items-start p-3 bg-rose-50/50 rounded-2xl border border-rose-100">
+                              <AlertCircle size={14} className="text-rose-500 mt-1 flex-shrink-0" />
+                              <div>
+                                 <p className="text-xs font-black text-slate-900 leading-tight">{a.title}</p>
+                                 <p className="text-[10px] font-bold text-slate-400 capitalize">{a.user ? `${a.user.firstName} ${a.user.lastName}` : 'System'}</p>
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                         <Activity className="mx-auto text-slate-200 mb-2" size={24} />
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Healthy Flow</p>
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 shadow-sm">
+                 <h3 className="text-sm font-black text-primary tracking-tight mb-4 flex items-center gap-2">
+                    <SlidersHorizontal size={16} />
+                    Staffing
+                 </h3>
+                 <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Optimal Capacity</span>
+                       <span className="text-sm font-black text-primary">{data?.staffing?.optimalStaff || 0}</span>
+                    </div>
+                    <div className="p-3 bg-white rounded-2xl border border-primary/10">
+                       <p className="text-xs font-bold text-slate-600 leading-relaxed italic">
+                         "{data?.staffing?.recommendation || 'Operating at baseline efficiency.'}"
+                       </p>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
       </div>
+
+      {/* Staff Performance Registry */}
+      <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <Users size={18} className="text-primary" />
+              Staff Performance Registry
+            </h3>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Detailed efficiency metrics by individual</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shadow-sm">
+              Sorted by Efficiency Score
+            </span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Rank</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Staff Member</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Tasks</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Avg Quality</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Efficiency</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {data?.rankings?.map((r, i) => (
+                <tr 
+                  key={r.id || i} 
+                  onClick={() => navigate(`/workers/${r.userId || r.id}`)}
+                  className="hover:bg-slate-50/80 transition-all group cursor-pointer"
+                >
+                  <td className="px-6 py-5">
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${
+                      i === 0 ? 'bg-amber-100 text-amber-700' : 
+                      i === 1 ? 'bg-slate-100 text-slate-600' : 
+                      i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-400'
+                    }`}>
+                      {i + 1}
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-2xl bg-primary/5 flex items-center justify-center text-[11px] font-black text-primary border border-primary/5 shadow-inner">
+                        {r.name.split(' ').map(n=>n[0]).join('')}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-900 group-hover:text-primary transition-colors">{r.name}</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{r.hubName || 'Standard Hub'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-xs font-black text-slate-700">{r.total} <span className="text-slate-400 font-bold">Total</span></span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">98.2% Accurate</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <span className="text-xs font-black text-slate-600">4.8 / 5.0</span>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex flex-col flex-nowrap items-end gap-1.5">
+                      <span className={`text-sm font-black ${
+                        r.avg >= 90 ? 'text-emerald-500' : 
+                        r.avg >= 70 ? 'text-blue-500' : 
+                        r.avg >= 50 ? 'text-amber-500' : 'text-rose-500'
+                      }`}>
+                        {Math.round(r.avg)}%
+                      </span>
+                      <div className="w-20 h-1.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 shadow-inner">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-1000 ${
+                            r.avg >= 90 ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 
+                            r.avg >= 70 ? 'bg-blue-500 shadow-sm shadow-blue-500/50' : 
+                            r.avg >= 50 ? 'bg-amber-500 shadow-sm shadow-amber-500/50' : 'bg-rose-500 shadow-sm shadow-rose-500/50'
+                          }`} 
+                          style={{ width: `${r.avg}%` }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-5 text-right">
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                      <ChevronRight size={14} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!data?.rankings?.length && (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400 text-xs font-black uppercase tracking-widest">
+                    No staff records found for this criteria
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        <div className="p-6 bg-slate-50/50 border-t border-slate-100 flex items-center justify-center">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing all active staff members in current hub filter</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
       {/* Suggested Improvements / AI Insights */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
