@@ -30,6 +30,7 @@ import TaskTemplates from './pages/TaskTemplates';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import SettingsPage from './pages/Settings';
 import NotificationDropdown from './components/NotificationDropdown';
 
 /* ─── helpers ─── */
@@ -53,14 +54,14 @@ const ALL_LINKS = [
   { name: 'Workers', icon: Users, path: '/workers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Tasks', icon: ClipboardList, path: '/tasks', roles: ['admin', 'hq_staff', 'fulfillment_manager', 'fulfillment_staff', 'rider', 'pickup_agent'] },
   { name: 'Centers', icon: Building2, path: '/centers', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
-  { name: 'Earnings', icon: DollarSign, path: '/earnings', roles: ['admin', 'hq_staff', 'fulfillment_manager', 'fulfillment_staff', 'rider', 'pickup_agent'] },
   { name: 'Payroll Engine', icon: Package, path: '/payroll', roles: ['admin'] },
   { name: 'Deductions', icon: CreditCard, path: '/deductions', roles: ['admin', 'hq_staff'] },
-  { name: 'Allowances', icon: Wallet, path: '/allowances', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
-  { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
+  { name: 'Allowances', icon: Wallet, path: '/allowances', roles: ['admin', 'hq_staff'] },
+  { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff'] },
   { name: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'hq_staff'] },
   { name: 'Performance', icon: Activity, path: '/performance', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Task Config', icon: Settings, path: '/templates', roles: ['admin', 'hq_staff'] },
+  { name: 'Earnings', icon: DollarSign, path: '/earnings', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'My Wallet', icon: Wallet, path: '/wallet', roles: ['fulfillment_staff', 'rider', 'pickup_agent'] },
 ];
 
@@ -141,9 +142,17 @@ const MainLayout = ({ children }) => {
               </span>
             </div>
           </div>
+          <div className="flex gap-2 mb-2">
+            <Link
+              to="/settings"
+              className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-black border border-slate-200 rounded-lg transition-all flex items-center justify-center gap-2"
+            >
+              <Settings size={12} /> SETTINGS
+            </Link>
+          </div>
           <button
             onClick={logout}
-            className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-[10px] font-black border border-slate-200 rounded-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-rose-600 text-[10px] font-black border border-slate-200 rounded-lg transition-all flex items-center justify-center gap-2"
           >
             <LogOut size={12} /> SIGN OUT
           </button>
@@ -280,6 +289,7 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -4,7 +4,7 @@ import axiosInstance from '../services/axiosConfig';
 import {
   Users, DollarSign, CheckCircle2, ClipboardList,
   TrendingUp, RefreshCw, Wallet,
-  ArrowUpRight, Package, Truck, UserCheck, Activity
+  ArrowUpRight, Package, Truck, UserCheck, Activity, AlertTriangle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
