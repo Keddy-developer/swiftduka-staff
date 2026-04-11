@@ -26,6 +26,9 @@ const Payments = () => {
     completed: 0,
     totalAmount: 0
   });
+  const [showLogs, setShowLogs] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
 
   const fetchPayments = useCallback(async () => {
     setLoading(true);
@@ -45,6 +48,22 @@ const Payments = () => {
       setLoading(false);
     }
   }, [statusFilter, search]);
+
+  const fetchAuditLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const { data } = await axiosInstance.get('/workforce/payments/audit-logs');
+      setLogs(data.logs || []);
+    } catch (err) {
+      toast.error('Failed to fetch audit trail');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showLogs) fetchAuditLogs();
+  }, [showLogs]);
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
 
@@ -96,9 +115,17 @@ const Payments = () => {
           <h1 className="page-title">Disbursements</h1>
           <p className="page-subtitle">Manage worker payouts and M-Pesa B2C transfers</p>
         </div>
-        <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
-          <Download size={13} /> EXPORT HISTORY
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowLogs(!showLogs)} 
+            className={`btn-secondary flex items-center gap-2 text-xs font-black transition-all ${showLogs ? 'bg-slate-900 border-slate-900 text-white' : ''}`}
+          >
+            <Clock size={13} /> {showLogs ? 'VIEW LIVE LEDGER' : 'VIEW AUDIT TRAIL'}
+          </button>
+          <button onClick={handleExport} className="btn-secondary flex items-center gap-2 text-xs font-black">
+            <Download size={13} /> EXPORT HISTORY
+          </button>
+        </div>
       </div>
 
       {/* Summary Row */}
@@ -144,35 +171,88 @@ const Payments = () => {
 
       {/* Filters + Table */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden text-sm">
-        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap gap-4 items-center">
-          <div className="relative flex-1 min-w-[250px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              value={search} 
-              onChange={e => setSearch(e.target.value)} 
-              placeholder="Search by worker name, phone or receipt..." 
-              className="w-full bg-white border border-slate-200 rounded-xl px-12 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20" 
-            />
+        <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex items-center gap-4 flex-1">
+             <div className="relative flex-1 max-w-[400px]">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  value={search} 
+                  onChange={e => setSearch(e.target.value)} 
+                  placeholder={showLogs ? "Filter audit logs..." : "Search by worker name, phone or receipt..."}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-12 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20" 
+                />
+             </div>
+             {!showLogs && (
+                <div className="flex items-center gap-2">
+                  {['', 'pending', 'completed', 'failed'].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
+                        statusFilter === s ? 'bg-primary text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      {s || 'ALL'}
+                    </button>
+                  ))}
+                </div>
+             )}
           </div>
-          <div className="flex items-center gap-2">
-            {['', 'pending', 'completed', 'failed'].map(s => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all ${
-                  statusFilter === s ? 'bg-primary text-white' : 'bg-white text-slate-400 border border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                {s || 'ALL'}
-              </button>
-            ))}
-          </div>
-          <button onClick={fetchPayments} className="btn-secondary p-3">
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          <button onClick={showLogs ? fetchAuditLogs : fetchPayments} className="btn-secondary p-3">
+            <RefreshCw size={14} className={(loading || logsLoading) ? 'animate-spin' : ''} />
           </button>
         </div>
 
-        {loading ? (
+        {showLogs ? (
+           <div className="overflow-x-auto">
+             <table>
+               <thead>
+                 <tr>
+                    <th className="pl-8">Action</th>
+                    <th>Performed By</th>
+                    <th>Target Worker</th>
+                    <th>Amount / Detail</th>
+                    <th>Timestamp</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-50">
+                  {logs.filter(l => 
+                     `${l.action} ${l.performer} ${l.target}`.toLowerCase().includes(search.toLowerCase())
+                  ).map(log => (
+                     <tr key={log.id} className="hover:bg-slate-50">
+                        <td className="pl-8 py-4">
+                           <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${
+                              log.action === 'PAID' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                           }`}>
+                              {log.action}
+                           </span>
+                        </td>
+                        <td>
+                           <p className="text-xs font-black text-slate-900 uppercase">{log.performer}</p>
+                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Administrator</p>
+                        </td>
+                        <td>
+                           <p className="text-xs font-black text-slate-700 uppercase">{log.target}</p>
+                           <p className="text-[9px] font-bold text-slate-400">{log.period}</p>
+                        </td>
+                        <td>
+                           <p className="text-xs font-black text-slate-900">KES {log.amount?.toLocaleString()}</p>
+                           <p className="text-[9px] font-mono text-slate-400">Ref: {log.details?.receipt || 'N/A'}</p>
+                        </td>
+                        <td>
+                           <p className="text-[10px] font-bold text-slate-600">
+                              {new Date(log.createdAt).toLocaleDateString()}
+                           </p>
+                           <p className="text-[9px] text-slate-400">
+                              {new Date(log.createdAt).toLocaleTimeString()}
+                           </p>
+                        </td>
+                     </tr>
+                  ))}
+               </tbody>
+             </table>
+           </div>
+        ) : loading ? (
           <div className="flex items-center justify-center py-24 text-slate-400 font-black text-xs tracking-widest uppercase opacity-40">
             <Loader2 className="animate-spin w-6 h-6 mr-3" /> Fetching payment ledger
           </div>
