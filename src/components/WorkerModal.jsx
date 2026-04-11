@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../services/axiosConfig';
 import { toast } from 'react-toastify';
-import { X, User, Phone, Mail, MapPin, CreditCard, Loader2, DollarSign, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { X, User, Phone, Mail, MapPin, CreditCard, Loader2, DollarSign, ShieldCheck, CheckCircle2, Lock } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
@@ -24,6 +25,7 @@ const PAYMENT_METHODS = [
 ];
 
 const WorkerModal = ({ worker, onClose, onSaved }) => {
+  const { user, isAdmin } = useAuth();
   const isEdit = !!worker;
   const [saving, setSaving] = useState(false);
   const [hubs, setHubs] = useState([]);
@@ -52,6 +54,13 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
     accountNumber: worker?.workerProfile?.accountNumber || '',
     password: '',
   });
+
+  // 🛡️ Automatic Hub Assignment logic
+  useEffect(() => {
+    if (!isAdmin && user?.fulfillmentHubId) {
+      setForm(prev => ({ ...prev, fulfillmentHubId: user.fulfillmentHubId }));
+    }
+  }, [isAdmin, user]);
 
   const [lookingUp, setLookingUp] = useState(false);
   const [existingUser, setExistingUser] = useState(null);
@@ -249,12 +258,27 @@ const WorkerModal = ({ worker, onClose, onSaved }) => {
                   <div>
                     <label className="form-label">Operations Center</label>
                     <div className="relative group">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <select value={form.fulfillmentHubId} onChange={set('fulfillmentHubId')} className="form-select pl-11 border-2">
+                      <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 ${!isAdmin ? 'text-blue-500' : 'text-slate-400'}`} />
+                      <select 
+                        value={form.fulfillmentHubId} 
+                        onChange={set('fulfillmentHubId')} 
+                        disabled={!isAdmin}
+                        className={`form-select pl-11 border-2 ${!isAdmin ? 'bg-blue-50/50 border-blue-100 font-bold text-blue-900 cursor-not-allowed' : ''}`}
+                      >
                         <option value="">— Field (Unassigned) —</option>
                         {hubs.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                       </select>
+                      {!isAdmin && (
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                          <Lock size={12} className="text-blue-400" />
+                        </div>
+                      )}
                     </div>
+                    {!isAdmin && (
+                      <p className="text-[9px] font-black text-blue-500 mt-1 uppercase tracking-tighter flex items-center gap-1">
+                        <ShieldCheck size={10} /> Hub Locked to your Operations Center
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import {
   Users, Plus, Search, ChevronRight, UserCheck, UserX,
-  Phone, MapPin, Trash2, RefreshCw, X, Download, Filter
+  Phone, MapPin, Trash2, RefreshCw, X, Download, Filter, Globe
 } from 'lucide-react';
 import WorkerModal from '../components/WorkerModal';
 
@@ -240,8 +240,28 @@ const Workers = () => {
                       </td>
                       <td>
                         <div className="flex items-center gap-1.5 text-slate-500">
-                          <MapPin size={12} className="text-slate-300" />
-                          <span className="text-xs font-medium">{worker.hubName || 'Unassigned'}</span>
+                          {(() => {
+                            const roles = worker.role || [];
+                            const isGlobal = roles.includes('admin') || roles.includes('super_admin') || roles.includes('hq_staff');
+                            
+                            if (isGlobal) {
+                              return (
+                                <div className="flex items-center gap-1.5 text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                   <Globe size={12} strokeWidth={3} />
+                                   <span className="text-[10px] font-black uppercase tracking-tight">Global HQ</span>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="flex items-center gap-1.5">
+                                <MapPin size={12} className="text-slate-300" />
+                                <span className={`text-xs font-semibold ${worker.hubName ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                                  {worker.hubName || 'Unassigned'}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </td>
                       <td>
