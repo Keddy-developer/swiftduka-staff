@@ -407,61 +407,101 @@ const Tasks = () => {
           onSaved={(t) => { fetchTasks(); setShowModal(false); }} 
         />
       )}
+  {/* Verification Flow Modal */}
+  {verifyingTask && (
+    <div className="modal-overlay !bg-slate-900/90 backdrop-blur-md" onClick={(e) => e.target === e.currentTarget && setVerifyingTask(null)}>
+       <div className="modal-box max-w-sm w-full shadow-2xl overflow-hidden ring-1 ring-white/10 bg-slate-950 border border-white/5">
+          {/* High-Tech Header */}
+          <div className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between border-b border-white/5">
+             <div>
+                <h3 className="font-black text-sm tracking-tight flex items-center gap-2">
+                   <ShieldAlert className="text-secondary animate-pulse" size={16} />
+                   Security Verification
+                </h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Logistics Protocol v2.4</p>
+             </div>
+             <button onClick={() => setVerifyingTask(null)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all">
+                <X size={18} />
+             </button>
+          </div>
 
-      {/* Verification Flow Modal */}
-      {verifyingTask && (
-        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setVerifyingTask(null)}>
-           <div className="modal-box max-w-sm w-full shadow-2xl overflow-hidden ring-1 ring-slate-200">
-              <div className="p-6 bg-slate-900 text-white flex items-center justify-between">
-                 <div>
-                    <h3 className="font-black text-sm tracking-tight">Security Verification</h3>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Validate action before completion</p>
-                 </div>
-                 <button onClick={() => setVerifyingTask(null)} className="text-slate-400 hover:text-white transition-colors">
-                    <X size={18} />
-                 </button>
-              </div>
-              <div className="p-6 space-y-6">
-                 <div className="flex justify-center flex-col items-center">
-                    <div className="w-24 h-24 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-slate-300 relative overflow-hidden group">
-                       <ActivityIcon className="animate-pulse" size={32} />
-                       <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-[9px] font-black text-primary">SCANNIG...</span>
-                       </div>
-                    </div>
-                    <p className="text-xs font-black text-slate-900 mt-4">
-                        {verifyingTask.template?.requiresQR ? 'SCAN ORDER QR CODE' : 'SCAN PRODUCT SKU'}
-                    </p>
-                    <p className="text-[10px] text-slate-400 font-bold mt-1 mb-6">Position document or product in frame</p>
+          <div className="p-8 space-y-8">
+             <div className="flex justify-center flex-col items-center">
+                
+                {/* 🤳 High-Tech Viewfinder */}
+                <div className="relative w-full aspect-square max-w-[240px] bg-slate-900 rounded-3xl overflow-hidden border border-white/10 shadow-inner group">
+                   {/* Scanning Beam */}
+                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-secondary shadow-[0_0_15px_rgba(245,158,11,0.8)] z-20 animate-scan" />
+                   
+                   {/* Viewfinder Corners */}
+                   <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-secondary/50 rounded-tl-lg z-10" />
+                   <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-secondary/50 rounded-tr-lg z-10" />
+                   <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-secondary/50 rounded-bl-lg z-10" />
+                   <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-secondary/50 rounded-br-lg z-10" />
 
-                    <div className="w-full space-y-2">
-                       <input 
-                          autoFocus
-                          placeholder={verifyingTask.template?.requiresQR ? 'Enter scanned QR string...' : 'Enter scanned SKU...'} 
-                          className="form-input text-center text-xs font-black border-2 border-primary/20 focus:border-primary"
-                          onKeyDown={(e) => {
-                             if (e.key === 'Enter') {
-                                updateStatus(verifyingTask, 'completed', { 
-                                   scannedValue: e.target.value, 
-                                   timestamp: new Date().toISOString() 
-                                });
-                             }
-                          }}
-                       />
-                       <p className="text-[8px] text-center font-bold text-slate-400 uppercase tracking-widest">Simulation: Type value & Press Enter</p>
-                    </div>
-                 </div>
+                   {/* Content */}
+                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/5 via-transparent to-transparent">
+                      <QrCode className="text-secondary/20 group-hover:text-secondary/40 transition-colors duration-500" size={64} strokeWidth={1} />
+                      <div className="flex flex-col items-center">
+                         <div className="flex items-center gap-2 px-3 py-1 bg-secondary/10 rounded-full border border-secondary/20">
+                            <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
+                            <span className="text-[10px] font-black text-secondary tracking-widest">CAMERA_ACTIVE</span>
+                         </div>
+                      </div>
+                   </div>
 
-                 <button 
+                   {/* Overlay Text */}
+                   <div className="absolute bottom-6 left-0 right-0 text-center z-10">
+                      <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Position QR in frame</span>
+                   </div>
+                </div>
+
+                <div className="w-full mt-8 space-y-4">
+                   <div className="text-center">
+                      <h4 className="text-xs font-black text-white uppercase tracking-widest mb-1">
+                          {verifyingTask.template?.requiresQR ? 'SCAN ORDER QR CODE' : 'SCAN PRODUCT SKU'}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-bold italic">Verification required: {verifyingTask.orderRef || 'MANUAL_TASK'}</p>
+                   </div>
+
+                   <div className="relative group">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-secondary to-blue-600 rounded-xl blur opacity-10 group-focus-within:opacity-25 transition duration-1000 group-focus-within:duration-200" />
+                      <input 
+                         autoFocus
+                         placeholder={verifyingTask.template?.requiresQR ? 'Enter scanned QR string...' : 'Enter scanned SKU...'} 
+                         className="relative w-full bg-slate-900 border border-white/10 rounded-xl py-4 text-center text-sm font-black text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary/50 transition-all uppercase tracking-widest"
+                         onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                               if (!e.target.value) return toast.warning("Value required for verification");
+                               updateStatus(verifyingTask, 'completed', { 
+                                  scannedValue: e.target.value, 
+                                  timestamp: new Date().toISOString() 
+                               });
+                            }
+                         }}
+                      />
+                   </div>
+                   <p className="text-[9px] text-center font-black text-slate-500 uppercase tracking-widest flex items-center justify-center gap-2">
+                       <span className="w-8 h-[1px] bg-slate-800" />
+                       Simulation Mode
+                       <span className="w-8 h-[1px] bg-slate-800" />
+                   </p>
+                </div>
+             </div>
+
+             <div className="flex gap-3">
+                <button 
                   onClick={() => setVerifyingTask(null)}
-                  className="w-full btn-secondary py-3 text-[10px] font-black tracking-widest uppercase"
-                 >
-                    Cancel Verification
-                 </button>
-              </div>
-           </div>
-        </div>
-      )}
+                  className="flex-1 py-3 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
+                >
+                   Cancel Verification
+                </button>
+             </div>
+          </div>
+       </div>
+    </div>
+  )}
+
     </div>
   );
 };
