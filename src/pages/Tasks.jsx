@@ -8,7 +8,7 @@ import {
   Calendar, AlertTriangle, ArrowRight, Phone, MessageSquare, MapPin, 
   ExternalLink, ChevronDown, ChevronUp, Package, QrCode, ShieldAlert, Activity as ActivityIcon
 } from 'lucide-react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import TaskModal from '../components/TaskModal';
 
 const STATUS_OPTS = [
@@ -69,32 +69,37 @@ const Tasks = () => {
 
   // QR Scanner Effect
   useEffect(() => {
-    let scanner = null;
+    let qrScanner = null;
     if (verifyingTask) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        scanner = new Html5QrcodeScanner("task-scanner-reader", {
-          fps: 10,
-          qrbox: { width: 200, height: 200 },
-          aspectRatio: 1.0
-        });
-
-        scanner.render((result) => {
-          updateStatus(verifyingTask, 'completed', { 
-            scannedValue: result, 
-            timestamp: new Date().toISOString(),
-            method: 'camera'
-          });
-          scanner.clear();
-        }, (error) => {
-          // Silent fail for scan errors to avoid console flood
-        });
-      }, 300);
+      const timer = setTimeout(async () => {
+        try {
+          qrScanner = new Html5Qrcode("task-scanner-reader");
+          const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+          
+          await qrScanner.start(
+            { facingMode: "environment" }, 
+            config,
+            (result) => {
+              updateStatus(verifyingTask, 'completed', { 
+                scannedValue: result, 
+                timestamp: new Date().toISOString(),
+                method: 'camera'
+              });
+              qrScanner.stop();
+            },
+            (errorMessage) => {
+              // Silent for per-frame errors
+            }
+          );
+        } catch (err) {
+          console.error("Scanner start error:", err);
+        }
+      }, 500);
 
       return () => {
         clearTimeout(timer);
-        if (scanner) {
-          scanner.clear().catch(e => console.error("Scanner cleanup failed", e));
+        if (qrScanner && qrScanner.isScanning) {
+          qrScanner.stop().catch(e => console.error("Scanner stop failed", e));
         }
       };
     }
@@ -474,8 +479,8 @@ const Tasks = () => {
                    <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-secondary/50 rounded-br-lg z-20" />
 
                    {/* Real Scanner Container */}
-                   <div id="task-scanner-reader" className="absolute inset-0 z-10 [&_#html5-qrcode-anchor-scan-type-change]:hidden [&_button]:!hidden [&_select]:!hidden">
-                      {/* Html5QrcodeScanner renders here */}
+                   <div id="task-scanner-reader" className="absolute inset-0 z-10 overflow-hidden [&_video]:w-full [&_video]:h-full [&_video]:object-cover">
+                      {/* Html5Qrcode renders video here */}
                    </div>
 
                    {/* Fallback/Overlay Content */}
