@@ -8,6 +8,7 @@ import {
   Calendar, AlertTriangle, ArrowRight, Phone, MessageSquare, MapPin, 
   ExternalLink, ChevronDown, ChevronUp, Package, QrCode, ShieldAlert, Activity as ActivityIcon
 } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import TaskModal from '../components/TaskModal';
 
 const STATUS_OPTS = [
@@ -65,6 +66,39 @@ const Tasks = () => {
   }, [statusFilter, typeFilter, search, page]);
 
   useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+  // QR Scanner Effect
+  useEffect(() => {
+    let scanner = null;
+    if (verifyingTask) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        scanner = new Html5QrcodeScanner("task-scanner-reader", {
+          fps: 10,
+          qrbox: { width: 200, height: 200 },
+          aspectRatio: 1.0
+        });
+
+        scanner.render((result) => {
+          updateStatus(verifyingTask, 'completed', { 
+            scannedValue: result, 
+            timestamp: new Date().toISOString(),
+            method: 'camera'
+          });
+          scanner.clear();
+        }, (error) => {
+          // Silent fail for scan errors to avoid console flood
+        });
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        if (scanner) {
+          scanner.clear().catch(e => console.error("Scanner cleanup failed", e));
+        }
+      };
+    }
+  }, [verifyingTask]);
 
   const updateStatus = async (task, newStatus, verificationData = null) => {
     try {
@@ -431,17 +465,22 @@ const Tasks = () => {
                 {/* 🤳 High-Tech Viewfinder */}
                 <div className="relative w-full aspect-square max-w-[240px] bg-slate-900 rounded-3xl overflow-hidden border border-white/10 shadow-inner group">
                    {/* Scanning Beam */}
-                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-secondary shadow-[0_0_15px_rgba(245,158,11,0.8)] z-20 animate-scan" />
+                   <div className="absolute top-0 left-0 right-0 h-[2px] bg-secondary shadow-[0_0_15px_rgba(245,158,11,0.8)] z-30 animate-scan" />
                    
                    {/* Viewfinder Corners */}
-                   <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-secondary/50 rounded-tl-lg z-10" />
-                   <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-secondary/50 rounded-tr-lg z-10" />
-                   <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-secondary/50 rounded-bl-lg z-10" />
-                   <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-secondary/50 rounded-br-lg z-10" />
+                   <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-secondary/50 rounded-tl-lg z-20" />
+                   <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-secondary/50 rounded-tr-lg z-20" />
+                   <div className="absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 border-secondary/50 rounded-bl-lg z-20" />
+                   <div className="absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 border-secondary/50 rounded-br-lg z-20" />
 
-                   {/* Content */}
-                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/5 via-transparent to-transparent">
-                      <QrCode className="text-secondary/20 group-hover:text-secondary/40 transition-colors duration-500" size={64} strokeWidth={1} />
+                   {/* Real Scanner Container */}
+                   <div id="task-scanner-reader" className="absolute inset-0 z-10 [&_#html5-qrcode-anchor-scan-type-change]:hidden [&_button]:!hidden [&_select]:!hidden">
+                      {/* Html5QrcodeScanner renders here */}
+                   </div>
+
+                   {/* Fallback/Overlay Content */}
+                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/5 via-transparent to-transparent z-0">
+                      <QrCode className="text-secondary/10" size={64} strokeWidth={1} />
                       <div className="flex flex-col items-center">
                          <div className="flex items-center gap-2 px-3 py-1 bg-secondary/10 rounded-full border border-secondary/20">
                             <div className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
@@ -451,7 +490,7 @@ const Tasks = () => {
                    </div>
 
                    {/* Overlay Text */}
-                   <div className="absolute bottom-6 left-0 right-0 text-center z-10">
+                   <div className="absolute bottom-6 left-0 right-0 text-center z-20">
                       <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em]">Position QR in frame</span>
                    </div>
                 </div>
