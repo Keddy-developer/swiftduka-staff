@@ -153,6 +153,11 @@ const TaskTemplates = () => {
               }`}>
                 {t.priority} Priority
               </span>
+              <span className={`text-[9px] font-black px-2 py-0.5 rounded ml-2 uppercase tracking-widest ${
+                !t.hubId ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'
+              }`}>
+                {!t.hubId ? 'Global HQ' : 'Local Center'}
+              </span>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => openModal(t)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-lg">
                   <Edit2 size={13} />

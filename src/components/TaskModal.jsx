@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../services/axiosConfig';
 import { toast } from 'react-toastify';
-import { X, ClipboardList, User, Loader2 } from 'lucide-react';
+import { X, ClipboardList, User, Loader2, Info, ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const TASK_TYPES = ['pickup', 'packing', 'dispatch', 'delivery'];
 
 const TaskModal = ({ onClose, onSaved }) => {
+  const { user, isAdmin } = useAuth();
   const [saving, setSaving] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -16,6 +19,7 @@ const TaskModal = ({ onClose, onSaved }) => {
     amount: '',
     notes: '',
     templateId: '',
+    hubId: user?.fulfillmentHubId || '',
   });
 
   useEffect(() => {
@@ -50,7 +54,12 @@ const TaskModal = ({ onClose, onSaved }) => {
     if (!form.assignedToId) return toast.error('Please assign to a worker');
     setSaving(true);
     try {
-      const { data } = await axiosInstance.post('/workforce/tasks', form);
+      const payload = { ...form };
+      if (!isAdmin && user?.fulfillmentHubId) {
+        payload.hubId = user.fulfillmentHubId;
+      }
+      
+      const { data } = await axiosInstance.post('/workforce/tasks', payload);
       toast.success('Task assigned');
       onSaved(data.task || { ...form, id: Date.now().toString(), status: 'pending', createdAt: new Date().toISOString() });
     } catch (err) {
@@ -75,11 +84,23 @@ const TaskModal = ({ onClose, onSaved }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="form-label">Task Template (Apply preset)</label>
-            <select value={form.templateId} onChange={handleTemplateChange} className="form-select bg-slate-50 border-slate-200">
+            <div className="flex items-center justify-between mb-1.5">
+               <label className="form-label mb-0">Task Template (Apply preset)</label>
+               {templates.length === 0 && !isAdmin && (
+                  <Link to="/templates" className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-0.5">
+                     CREATE TEMPLATES <ArrowUpRight size={10} />
+                  </Link>
+               )}
+            </div>
+            <select value={form.templateId} onChange={handleTemplateChange} className={`form-select ${templates.length === 0 ? 'bg-slate-50 border-dashed border-slate-300' : 'bg-slate-50 border-slate-200'}`}>
               <option value="">— No Template (Manual) —</option>
               {templates.map(t => <option key={t.id} value={t.id}>{t.title} ({t.priority})</option>)}
             </select>
+            {templates.length === 0 && (
+               <p className="text-[9px] font-black text-slate-400 mt-1 uppercase tracking-tighter flex items-center gap-1">
+                  <Info size={10} /> No hub-specific templates found. You can set up presets in Task Config.
+               </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

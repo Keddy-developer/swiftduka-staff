@@ -60,7 +60,7 @@ const ALL_LINKS = [
   { name: 'Bonuses', icon: Briefcase, path: '/bonuses', roles: ['admin', 'hq_staff'] },
   { name: 'Payments', icon: CreditCard, path: '/payments', roles: ['admin', 'hq_staff'] },
   { name: 'Performance', icon: ActivityIcon, path: '/performance', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
-  { name: 'Task Config', icon: Settings, path: '/templates', roles: ['admin', 'hq_staff'] },
+  { name: 'Task Config', icon: Settings, path: '/templates', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'Earnings', icon: DollarSign, path: '/earnings', roles: ['admin', 'hq_staff', 'fulfillment_manager'] },
   { name: 'My Wallet', icon: Wallet, path: '/wallet', roles: ['fulfillment_staff', 'rider', 'pickup_agent'] },
 ];
@@ -288,7 +288,7 @@ function App() {
             </PrivateRoute>
           } />
           <Route path="/templates" element={
-            <PrivateRoute allowedRoles={['hq_staff']}>
+            <PrivateRoute allowedRoles={['hq_staff', 'fulfillment_manager']}>
               <TaskTemplates />
             </PrivateRoute>
           } />
