@@ -6,7 +6,7 @@ import {
   ClipboardList, Plus, Search, Filter, RefreshCw,
   CheckCircle2, Clock, Loader2, ChevronRight, X, User,
   Calendar, AlertTriangle, ArrowRight, Phone, MessageSquare, MapPin, 
-  ExternalLink, ChevronDown, ChevronUp, Package, QrCode, Activity
+  ExternalLink, ChevronDown, ChevronUp, Package, QrCode, Activity as ActivityIcon
 } from 'lucide-react';
 import TaskModal from '../components/TaskModal';
 
@@ -424,7 +424,7 @@ const Tasks = () => {
               <div className="p-6 space-y-6">
                  <div className="flex justify-center flex-col items-center">
                     <div className="w-24 h-24 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-center text-slate-300 relative overflow-hidden group">
-                       <Activity className="animate-pulse" size={32} />
+                       <ActivityIcon className="animate-pulse" size={32} />
                        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <span className="text-[9px] font-black text-primary">SCANNIG...</span>
                        </div>

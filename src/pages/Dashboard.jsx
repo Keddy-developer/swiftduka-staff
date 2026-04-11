@@ -4,7 +4,7 @@ import axiosInstance from '../services/axiosConfig';
 import {
   Users, DollarSign, CheckCircle2, ClipboardList,
   TrendingUp, RefreshCw, Wallet,
-  ArrowUpRight, Package, Truck, UserCheck, Activity, AlertTriangle
+  ArrowUpRight, Package, Truck, UserCheck, Activity as ActivityIcon, AlertTriangle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
@@ -185,7 +185,7 @@ const Dashboard = () => {
         <div className="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <h3 className="text-base font-black text-slate-900 tracking-tight">Recent Activity</h3>
-            <Activity size={18} className="text-slate-300" />
+            <ActivityIcon size={18} className="text-slate-300" />
           </div>
           <div className="divide-y divide-slate-100">
             {stats.recentActivity?.length > 0 ? (

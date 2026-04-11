@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axiosInstance from '../services/axiosConfig';
 import {
-  Trophy, TrendingDown, Clock, Activity,
+  Trophy, TrendingDown, Clock, Activity as ActivityIcon,
   Filter, AlertCircle, RefreshCw, ChevronRight,
   Target, Zap, SlidersHorizontal, BarChart3, Users, Package, CheckCircle2
 } from 'lucide-react';
@@ -85,7 +85,7 @@ const Performance = () => {
       {/* Main Stats Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         {[
-          { label: 'Avg Efficiency', value: `${Math.round(data?.overallAvg || 0)}%`, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+          { label: 'Avg Efficiency', value: `${Math.round(data?.overallAvg || 0)}%`, icon: ActivityIcon, color: 'text-emerald-500', bg: 'bg-emerald-50' },
           { label: 'Completion Rate', value: `${Math.round(data?.completionRate || 0)}%`, icon: CheckCircle2, color: 'text-blue-500', bg: 'bg-blue-50' },
           { label: 'Peak Capacity', value: `${data?.staffing?.optimalStaff || 0}`, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50' },
           { label: 'Total Tasks', value: data?.totalTasks || 0, icon: Package, color: 'text-amber-500', bg: 'bg-amber-50' },
@@ -184,7 +184,7 @@ const Performance = () => {
                       </div>
                     ) : (
                       <div className="text-center py-4">
-                         <Activity className="mx-auto text-slate-200 mb-2" size={24} />
+                         <ActivityIcon className="mx-auto text-slate-200 mb-2" size={24} />
                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Healthy Flow</p>
                       </div>
                     )}
@@ -379,7 +379,7 @@ const Performance = () => {
                  </div>
                ) : (
                  <>
-                    <Activity className="mx-auto text-slate-300 mb-3" size={32} />
+                    <ActivityIcon className="mx-auto text-slate-300 mb-3" size={32} />
                     <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Scanning Patterns Neutral</p>
                     <p className="text-[10px] text-slate-400 font-bold mt-1 tracking-tight">No suspicious activity detected in the last 24h.</p>
                  </>
