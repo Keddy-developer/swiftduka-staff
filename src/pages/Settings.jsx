@@ -8,7 +8,7 @@ import {
 import { toast } from 'react-toastify';
 
 const Settings = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
 
@@ -19,6 +19,18 @@ const Settings = () => {
         email: user?.email || '',
         phone: user?.phone || '',
     });
+
+    // Update form when user context changes (after refresh)
+    React.useEffect(() => {
+        if (user) {
+            setProfileData({
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                email: user.email || '',
+                phone: user.phone || '',
+            });
+        }
+    }, [user]);
 
     // Password state
     const [passwordData, setPasswordData] = useState({
@@ -32,6 +44,7 @@ const Settings = () => {
         setLoading(true);
         try {
             await axiosInstance.patch(`/user/profile`, profileData);
+            await refreshUser();
             toast.success('Profile updated successfully');
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Failed to update profile');

@@ -60,11 +60,25 @@ export const AuthProvider = ({ children }) => {
   const canManagePayroll = isAdmin || isHQ;
   const canViewOwnCenter = isManager || isAdmin || isHQ;
 
+  const refreshUser = async () => {
+    try {
+      const { data } = await axiosInstance.get('/auth/me');
+      if (data.success && data.user) {
+        localStorage.setItem('staff_user', JSON.stringify(data.user));
+        setUser(data.user);
+        return data.user;
+      }
+    } catch (err) {
+      console.error('Failed to refresh user data:', err);
+    }
+    return null;
+  };
+
   return (
     <AuthContext.Provider value={{
       user, loading, login, logout, forgotPassword,
       isAdmin, isManager, isHQ, isRider, isAgent, isStaff,
-      canManagePayroll, canViewOwnCenter,
+      canManagePayroll, canViewOwnCenter, refreshUser
     }}>
       {children}
     </AuthContext.Provider>
