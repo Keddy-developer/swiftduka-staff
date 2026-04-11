@@ -10,24 +10,45 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = async () => {
+    try {
+      const { data } = await axiosInstance.get('/auth/me');
+      if (data.success && data.user) {
+        localStorage.setItem('staff_user', JSON.stringify(data.user));
+        setUser(data.user);
+        return data.user;
+      }
+    } catch (err) {
+      console.error('Failed to refresh user data:', err);
+    }
+    return null;
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('staff_token');
     const stored = localStorage.getItem('staff_user');
-    if (token && stored) {
-      try {
-        const decoded = jwtDecode(token);
-        if (decoded.exp * 1000 > Date.now()) {
-          setUser(JSON.parse(stored));
-        } else {
+    
+    const initAuth = async () => {
+      if (token && stored) {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 > Date.now()) {
+            setUser(JSON.parse(stored));
+            // Silently refresh to get latest profile fields (firstName, lastName, phone)
+            await refreshUser();
+          } else {
+            localStorage.removeItem('staff_token');
+            localStorage.removeItem('staff_user');
+          }
+        } catch {
           localStorage.removeItem('staff_token');
           localStorage.removeItem('staff_user');
         }
-      } catch {
-        localStorage.removeItem('staff_token');
-        localStorage.removeItem('staff_user');
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email, password) => {
@@ -60,19 +81,6 @@ export const AuthProvider = ({ children }) => {
   const canManagePayroll = isAdmin || isHQ;
   const canViewOwnCenter = isManager || isAdmin || isHQ;
 
-  const refreshUser = async () => {
-    try {
-      const { data } = await axiosInstance.get('/auth/me');
-      if (data.success && data.user) {
-        localStorage.setItem('staff_user', JSON.stringify(data.user));
-        setUser(data.user);
-        return data.user;
-      }
-    } catch (err) {
-      console.error('Failed to refresh user data:', err);
-    }
-    return null;
-  };
 
   return (
     <AuthContext.Provider value={{
