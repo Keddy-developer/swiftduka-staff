@@ -6,7 +6,7 @@ import {
   ClipboardList, Plus, Search, Filter, RefreshCw,
   CheckCircle2, Clock, Loader2, ChevronRight, X, User,
   Calendar, AlertTriangle, ArrowRight, Phone, MessageSquare, MapPin, 
-  ExternalLink, ChevronDown, ChevronUp, Package, QrCode
+  ExternalLink, ChevronDown, ChevronUp, Package, QrCode, Activity
 } from 'lucide-react';
 import TaskModal from '../components/TaskModal';
 
