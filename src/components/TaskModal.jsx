@@ -19,7 +19,7 @@ const TaskModal = ({ onClose, onSaved }) => {
     amount: '',
     notes: '',
     templateId: '',
-    hubId: user?.fulfillmentHubId || '',
+    hubId: (user?.fulfillmentHubId && user?.fulfillmentHubId !== "") ? user.fulfillmentHubId : null,
   });
 
   useEffect(() => {
