@@ -533,7 +533,19 @@ const Tasks = () => {
                 </div>
              </div>
 
-             <div className="flex gap-3">
+             <div className="flex flex-col gap-3">
+                {isManager && (
+                   <button 
+                     onClick={() => {
+                        if (window.confirm("Bypass security verification and complete task? This action will be logged.")) {
+                           updateStatus(verifyingTask, 'completed', { isBypass: true });
+                        }
+                     }}
+                     className="w-full py-4 bg-secondary/10 hover:bg-secondary/20 border border-secondary/20 text-secondary rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                   >
+                      Bypass Verification
+                   </button>
+                )}
                 <button 
                   onClick={() => setVerifyingTask(null)}
                   className="flex-1 py-3 text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"

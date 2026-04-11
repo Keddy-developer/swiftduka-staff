@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../services/axiosConfig';
 import { toast } from 'react-toastify';
-import { X, ClipboardList, User, Loader2, Info, ArrowUpRight } from 'lucide-react';
+import { X, ClipboardList, User, Loader2, Info, ArrowUpRight, Search, Check, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -12,6 +12,8 @@ const TaskModal = ({ onClose, onSaved }) => {
   const [saving, setSaving] = useState(false);
   const [workers, setWorkers] = useState([]);
   const [templates, setTemplates] = useState([]);
+  const [showPicker, setShowPicker] = useState(false);
+  const [workerSearch, setWorkerSearch] = useState('');
   const [form, setForm] = useState({
     type: 'delivery',
     assignedToId: '',
@@ -118,13 +120,94 @@ const TaskModal = ({ onClose, onSaved }) => {
 
           <div>
             <label className="form-label">Assign To *</label>
-            <select value={form.assignedToId} onChange={set('assignedToId')} className="form-select" required>
-              <option value="">— Select worker —</option>
-              {workers.map(w => (
-                <option key={w.id} value={w.id}>{w.firstName} {w.lastName} ({w.role?.[0]?.replace('_', ' ')})</option>
-              ))}
-            </select>
+            <button 
+              type="button"
+              onClick={() => setShowPicker(true)}
+              className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:border-primary transition-all group"
+            >
+              {form.assignedToId ? (
+                <div className="flex items-center gap-2">
+                   <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center text-[10px] text-primary">
+                      {workers.find(w => w.id === form.assignedToId)?.firstName?.[0]}
+                   </div>
+                   <span>{workers.find(w => w.id === form.assignedToId)?.firstName} {workers.find(w => w.id === form.assignedToId)?.lastName}</span>
+                </div>
+              ) : (
+                <span className="text-slate-400 font-medium">Search for an employee...</span>
+              )}
+              <Search size={14} className="text-slate-400 group-hover:text-primary" />
+            </button>
           </div>
+
+          {/* Worker Picker Sub-Modal */}
+          {showPicker && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-[80vh] overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                   <h4 className="font-black text-xs text-slate-900 tracking-widest uppercase">Select Employee</h4>
+                   <button onClick={() => setShowPicker(false)} className="p-1 hover:bg-slate-200 rounded text-slate-400">
+                      <X size={16} />
+                   </button>
+                </div>
+                <div className="p-3 border-b border-slate-100">
+                   <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                      <input 
+                         autoFocus
+                         value={workerSearch}
+                         onChange={e => setWorkerSearch(e.target.value)}
+                         placeholder="Search by name or role..."
+                         className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none"
+                      />
+                   </div>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                   {workers
+                     .filter(w => 
+                        `${w.firstName} ${w.lastName} ${w.role?.[0]}`.toLowerCase().includes(workerSearch.toLowerCase())
+                     )
+                     .map(w => (
+                        <button 
+                          key={w.id}
+                          type="button"
+                          onClick={() => {
+                             setForm(prev => ({ ...prev, assignedToId: w.id }));
+                             setShowPicker(false);
+                             setWorkerSearch('');
+                          }}
+                          className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                             form.assignedToId === w.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-slate-50 text-slate-700'
+                          }`}
+                        >
+                           <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${
+                                 form.assignedToId === w.id ? 'bg-white/20' : 'bg-slate-100'
+                              }`}>
+                                 {w.firstName?.[0]}{w.lastName?.[0]}
+                              </div>
+                              <div className="text-left">
+                                 <p className="font-black text-sm leading-none">{w.firstName} {w.lastName}</p>
+                                 <span className={`text-[9px] font-black uppercase tracking-tighter ${
+                                    form.assignedToId === w.id ? 'text-white/60' : 'text-slate-400'
+                                 }`}>
+                                    {w.role?.[0]?.replace('_', ' ')}
+                                 </span>
+                              </div>
+                           </div>
+                           {form.assignedToId === w.id ? <Check size={14} /> : <ChevronRight size={14} className="opacity-0 group-hover:opacity-100" />}
+                        </button>
+                     ))
+                   }
+                </div>
+                {workers.filter(w => `${w.firstName} ${w.lastName} ${w.role?.[0]}`.toLowerCase().includes(workerSearch.toLowerCase())).length === 0 && (
+                   <div className="p-8 text-center text-slate-400">
+                      <User size={32} className="mx-auto mb-2 opacity-20" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">No matching staff</p>
+                   </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="form-label">Order Reference (optional)</label>
