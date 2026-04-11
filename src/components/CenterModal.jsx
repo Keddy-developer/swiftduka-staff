@@ -14,6 +14,8 @@ const CenterModal = ({ center, onClose, onSaved }) => {
     capacity: center?.capacity || 500,
     phone: center?.phone || '',
     email: center?.email || '',
+    password: '',
+    active: center?.active ?? true,
   });
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -25,7 +27,19 @@ const CenterModal = ({ center, onClose, onSaved }) => {
     try {
       const url = isEdit ? `/delivery/hubs/${center.id}` : '/delivery/hubs';
       const method = isEdit ? 'put' : 'post';
-      const { data } = await axiosInstance[method](url, form);
+      
+      const payload = { ...form };
+      if (isEdit) {
+         // When editing, the backend createHub logic (which requires adminEmail/Password) 
+         // might be different from updateHub. Let's ensure consistency.
+         payload.adminEmail = form.email;
+         payload.adminPassword = form.password;
+      } else {
+         payload.adminEmail = form.email;
+         payload.adminPassword = form.password;
+      }
+
+      const { data } = await axiosInstance[method](url, payload);
       toast.success(isEdit ? 'Center updated' : 'Center created');
       onSaved(data.hub || { ...form, id: Date.now().toString(), isActive: true, staffCount: 0, activeOrders: 0 });
     } catch (err) {
@@ -81,9 +95,36 @@ const CenterModal = ({ center, onClose, onSaved }) => {
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Email</label>
-            <input type="email" value={form.email} onChange={set('email')} placeholder="hub@ikosoko.com" className="form-input" />
+          <div className="grid grid-cols-2 gap-3">
+             <div>
+               <label className="form-label">Admin Email</label>
+               <input type="email" value={form.email} onChange={set('email')} placeholder="hub@ikosoko.com" className="form-input" />
+             </div>
+             {!isEdit && (
+                <div>
+                  <label className="form-label">Password *</label>
+                  <input type="password" value={form.password} onChange={set('password')} placeholder="••••••••" className="form-input" required />
+                </div>
+             )}
+             {isEdit && (
+                <div className="flex flex-col justify-end">
+                   <label className="form-label flex items-center justify-between">
+                      Status
+                      <span className={`text-[9px] font-black uppercase ${form.active ? 'text-emerald-500' : 'text-slate-400'}`}>
+                         {form.active ? 'Operational' : 'Offline'}
+                      </span>
+                   </label>
+                   <button 
+                     type="button"
+                     onClick={() => setForm(prev => ({ ...prev, active: !prev.active }))}
+                     className={`w-full py-2.5 rounded-lg border-2 font-black text-[10px] tracking-widest transition-all ${
+                        form.active ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-400'
+                     }`}
+                   >
+                      {form.active ? 'DEACTIVATE' : 'ACTIVATE HUB'}
+                   </button>
+                </div>
+             )}
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
